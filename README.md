@@ -7,10 +7,11 @@ This repository contains a Docker Compose stack that deploys the WANdisco Fusion
 1. Install [Docker Compose](https://docs.docker.com/compose/install/)
 1. Hortonworks HDP 2.6.5 Cluster or Sandbox 
 1. Azure ADLS Gen 2 account (Client ID and Client secret) 
+
 ## Installation Process
 There are a series of steps that must be completed in order to properly deploy and leverage WANdisco Fusion:
 
-1. Modify the configuration files under `fusion-shared-a` and `fusion-shared-b`
+1. Download and modify the configuration files under `fusion-shared-a` and `fusion-shared-b`
 1. Ensure the proper WANdisco license is available at `./fusion-common/license.key`
 
 ### Modifying The Configuration
