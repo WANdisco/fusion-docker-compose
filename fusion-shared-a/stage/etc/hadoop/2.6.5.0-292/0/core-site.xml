@@ -1,0 +1,167 @@
+  <configuration>
+    
+    <property>
+      <name>fs.azure.user.agent.prefix</name>
+      <value>User-Agent: APN/1.0 Hortonworks/1.0 HDP/</value>
+    </property>
+   
+    <!-- Modified for nn-proxy configuration 
+    <property>
+      <name>fs.defaultFS</name>
+      <value>hdfs://HDFS_NAME_NODE_HOSTNAME:8020</value>
+    </property>
+    -->
+   
+   <property>
+     <name>fs.defaultFS</name>
+     <value>hdfs://NAMENODE_PROXY_HOSTNAME:8890</value>
+   </property>
+
+   <property>
+     <name>fs.fusion.underlyingFs</name>
+     <value>hdfs://HDFS_NAME_NODE_HOSTNAME:8020</value>
+   </property>
+    
+   <!-- Removed for nn-proxy configuration
+   <property>
+     <name>fs.hdfs.impl</name>
+     <value>com.wandisco.fs.client.FusionHdfs</value>
+   </property>
+   -->
+    
+    <property>
+      <name>fs.s3a.fast.upload</name>
+      <value>true</value>
+    </property>
+    
+    <property>
+      <name>fs.s3a.fast.upload.buffer</name>
+      <value>disk</value>
+    </property>
+    
+    <property>
+      <name>fs.s3a.multipart.size</name>
+      <value>67108864</value>
+    </property>
+    
+    <property>
+      <name>fs.s3a.user.agent.prefix</name>
+      <value>User-Agent: APN/1.0 Hortonworks/1.0 HDP/</value>
+    </property>
+    
+    <property>
+      <name>fs.trash.interval</name>
+      <value>360</value>
+    </property>
+    
+    <property>
+      <name>fusion.client.ssl.enabled</name>
+      <value>false</value>
+    </property>
+    
+    <property>
+      <name>fusion.http.authentication.enabled</name>
+      <value>false</value>
+    </property>
+    
+    <property>
+      <name>fusion.http.authorization.enabled</name>
+      <value>false</value>
+    </property>
+    
+    <property>
+      <name>fusion.server</name>
+      <value>fusion-server-a:8023</value>
+    </property>
+    
+    <property>
+      <name>ha.failover-controller.active-standby-elector.zk.op.retries</name>
+      <value>120</value>
+    </property>
+    
+    <property>
+      <name>hadoop.custom-extensions.root</name>
+      <value>/hdp/ext/2.6/hadoop</value>
+    </property>
+    
+    <property>
+      <name>hadoop.http.authentication.simple.anonymous.allowed</name>
+      <value>true</value>
+    </property>
+    
+    <property>
+      <name>hadoop.proxyuser.hdfs.groups</name>
+      <value>*</value>
+    </property>
+    
+    <property>
+      <name>hadoop.proxyuser.hdfs.hosts</name>
+      <value>fusion-server-a</value>
+    </property>
+    
+    <property>
+      <name>hadoop.security.auth_to_local</name>
+      <value>DEFAULT</value>
+    </property>
+    
+    <property>
+      <name>hadoop.security.authentication</name>
+      <value>simple</value>
+    </property>
+    
+    <property>
+      <name>hadoop.security.authorization</name>
+      <value>false</value>
+    </property>
+    
+    <property>
+      <name>hadoop.security.key.provider.path</name>
+      <value></value>
+    </property>
+    
+    <property>
+      <name>io.compression.codecs</name>
+      <value>org.apache.hadoop.io.compress.GzipCodec,org.apache.hadoop.io.compress.DefaultCodec,org.apache.hadoop.io.compress.SnappyCodec</value>
+    </property>
+    
+    <property>
+      <name>io.file.buffer.size</name>
+      <value>131072</value>
+    </property>
+    
+    <property>
+      <name>io.serializations</name>
+      <value>org.apache.hadoop.io.serializer.WritableSerialization</value>
+    </property>
+    
+    <property>
+      <name>ipc.client.connect.max.retries</name>
+      <value>50</value>
+    </property>
+    
+    <property>
+      <name>ipc.client.connection.maxidletime</name>
+      <value>30000</value>
+    </property>
+    
+    <property>
+      <name>ipc.client.idlethreshold</name>
+      <value>8000</value>
+    </property>
+    
+    <property>
+      <name>ipc.server.tcpnodelay</name>
+      <value>true</value>
+    </property>
+    
+    <property>
+      <name>mapreduce.jobtracker.webinterface.trusted</name>
+      <value>false</value>
+    </property>
+    
+    <property>
+      <name>net.topology.script.file.name</name>
+      <value>/etc/hadoop/conf/topology_script.py</value>
+    </property>
+    
+  </configuration>

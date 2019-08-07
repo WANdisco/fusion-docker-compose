@@ -1,0 +1,217 @@
+#################################################################################
+# Copyright (c) 2014-2018 WANdisco
+#
+#   Licensed under the Apache License, Version 2.0 (the "License");
+#   you may not use this file except in compliance with the License.
+#   You may obtain a copy of the License at
+#   http://www.apache.org/licenses/LICENSE-2.0
+#
+#   Apache License, Version 2.0
+#
+################################################################################
+#
+# This docker-compose.yml file creates all WANdisco Fusion services needed to
+# replicate data from one zone (Zone 1) to another zone (Zone 2).
+#
+# Services running in each zone
+#
+#     Zone 1
+#         Fusion NameNode Proxy (fusion-nn-proxy)
+#         Fusion UI Server HDP  (fusion-ui-server-a)
+#         Fusion IHC Server     (fusion-ihc-server-a)
+#         Fusion Server         (fusion-server-a)
+#
+#     Zone 2
+#         Fusion UI Server HDI  (fusion-ui-server-b)
+#         Fusion IHC Server     (fusion-ihc-server-b)
+#         Fusion Server         (fusion-server-b)
+#
+# Note: while version 3.7 is technically compatible with Docker 18.06 and
+# higher, this project was tested with only Docker 18.09 as of 2019-08-06.
+
+version: "3.7"
+
+services:
+  ################
+  # BEGIN ZONE 1 #
+  ################
+
+  # Fusion NameNode Proxy (NPX)
+  fusion-nn-proxy:
+    image: wandisco/fusion-nn-proxy:4.0.0.0
+    networks:
+      - fusion
+    ports: 
+      - 8890:8890
+    volumes:
+      - fusion-a-log-fusion:/var/log/fusion
+      - ./fusion-shared-a/stage/etc/hadoop:/etc/hadoop
+
+  # Fusion UI Server
+  fusion-ui-server-a:
+    image: wandisco/fusion-ui-server-hdp:2.14.0.6
+    networks:
+      - fusion
+    ports:
+      - 8083:8083
+      - 8443:8443
+    volumes:
+      - fusion-a-log-fusion:/var/log/fusion
+      - fusion-a-opt-wandisco-fusion-server-checkpoint:/opt/wandisco/fusion/server/checkpoint
+      - fusion-a-usr-hdp:/usr/hdp
+      - ./fusion-common/license.key:/etc/wandisco/fusion/server/license.key
+      - ./fusion-shared-a/stage/etc/hadoop:/etc/hadoop
+      - ./fusion-shared-a/stage/etc/wandisco/fusion/server/application.properties:/etc/wandisco/fusion/server/application.properties
+      - ./fusion-shared-a/stage/opt/wandisco/fusion-ui-server/properties/ui.properties:/opt/wandisco/fusion-ui-server/properties/ui.properties
+
+  # Fusion IHC Server
+  fusion-ihc-server-a:
+    image: wandisco/fusion-ihc-server-hdp:2.14.0.6
+    networks:
+      - fusion
+    ports:
+      - 7000:7000
+      - 9001:9001
+    volumes:
+      - fusion-a-log-fusion:/var/log/fusion
+      - fusion-a-opt-wandisco-fusion-server-checkpoint:/opt/wandisco/fusion/server/checkpoint
+      - fusion-a-usr-hdp:/usr/hdp
+      - ./fusion-shared-a/stage/etc/hadoop:/etc/hadoop
+      - ./fusion-shared-a/stage/etc/wandisco/fusion/ihc/server/hdp-2.6.5/2.7.3.2.6.5.0-292.ihc:/etc/wandisco/fusion/ihc/server/hdp-2.6.5/2.7.3.2.6.5.0-292.ihc
+      - ./fusion-shared-a/stage/etc/wandisco/fusion/server/application.properties:/etc/wandisco/fusion/server/application.properties
+
+  # Fusion Server
+  fusion-server-a:
+    image: wandisco/fusion-server-hdp:2.14.0.6
+    networks:
+      - fusion
+    ports:
+      - 8023:8023
+      - 8024:8024
+      - 8082:8082
+      - 8084:8084
+    environment:
+      - DB_ACTION=
+      - FUSION_ZONE=zone1
+    volumes:
+      - fusion-a-log-fusion:/var/log/fusion
+      - fusion-a-opt-wandisco-fusion-server-checkpoint:/opt/wandisco/fusion/server/checkpoint
+      - fusion-a-opt-wandisco-fusion-server-dcone:/opt/wandisco/fusion/server/dcone
+      - fusion-a-usr-hdp:/usr/hdp
+      - ./fusion-common/license.key:/etc/wandisco/fusion/server/license.key
+      - ./fusion-shared-a/stage/etc/hadoop:/etc/hadoop
+      - ./fusion-shared-a/stage/etc/wandisco/fusion/ihc/server/hdp-2.6.5/2.7.3.2.6.5.0-292.ihc:/etc/wandisco/fusion/ihc/server/hdp-2.6.5/2.7.3.2.6.5.0-292.ihc
+      - ./fusion-shared-a/stage/etc/wandisco/fusion/server/application.properties:/etc/wandisco/fusion/server/application.properties
+
+  ################
+  # END ZONE 1   #
+  ################
+
+  ################
+  # BEGIN ZONE 2 #
+  ################
+  
+  # Fusion UI Server
+  fusion-ui-server-b:
+    image: wandisco/fusion-ui-server-hdi:2.14.0.6
+    networks:
+      - fusion
+    # Note: standard ports have been incremented by 500 to remove conflicts between Zone 1 and Zone 2
+    ports:
+      - 8583:8583
+      - 8943:8943
+    volumes:
+      - fusion-b-log-fusion:/var/log/fusion
+      - fusion-b-opt-wandisco-fusion-server-checkpoint:/opt/wandisco/fusion/server/checkpoint
+      - fusion-b-usr-hdp:/usr/hdp
+      - ./fusion-common/license.key:/etc/wandisco/fusion/server/license.key
+      - ./fusion-shared-b/stage/etc/hadoop:/etc/hadoop
+      - ./fusion-shared-b/stage/opt/wandisco/fusion-ui-server/properties/ui.properties:/opt/wandisco/fusion-ui-server/properties/ui.properties
+      - ./fusion-shared-b/stage/etc/wandisco/fusion/ihc/server/hdi-3.6:/etc/wandisco/fusion/ihc/server/hdi-3.6
+      - ./fusion-shared-b/stage/etc/wandisco/fusion/server/application.properties:/etc/wandisco/fusion/server/application.properties
+      - ./fusion-shared-b/stage/etc/wandisco/fusion/server/core-site.xml:/etc/wandisco/fusion/server/core-site.xml
+
+  # Fusion IHC Server
+  fusion-ihc-server-b:
+    image: wandisco/fusion-ihc-server-hdi:2.14.0.6
+    networks:
+      - fusion
+    # Note: standard ports have been incremented by 500 to remove conflicts between Zone 1 and Zone 2
+    ports:
+      - 7500:7500
+      - 9501:9501
+    volumes:
+      - fusion-b-log-fusion:/var/log/fusion
+      - fusion-b-opt-wandisco-fusion-server-checkpoint:/opt/wandisco/fusion/server/checkpoint
+      - fusion-b-usr-hdp:/usr/hdp
+      - ./fusion-shared-b/stage/etc/hadoop:/etc/hadoop
+      - ./fusion-shared-b/stage/etc/wandisco/fusion/ihc/server/hdi-3.6:/etc/wandisco/fusion/ihc/server/hdi-3.6
+      - ./fusion-shared-b/stage/etc/wandisco/fusion/server/application.properties:/etc/wandisco/fusion/server/application.properties
+
+  # Fusion Server
+  fusion-server-b:
+    image: wandisco/fusion-server-hdi:2.14.0.6
+    networks:
+      - fusion
+    # Note: standard ports have been incremented by 500 to remove conflicts between Zone 1 and Zone 2
+    ports:
+      - 8523:8523
+      - 8524:8524
+      - 8582:8582
+      - 8584:8584
+    environment:
+      - DB_ACTION=
+      - FUSION_ZONE=zone2
+      - REPLICATION_MODE=HDI
+    volumes:
+      - fusion-b-log-fusion:/var/log/fusion
+      - fusion-b-opt-wandisco-fusion-server-checkpoint:/opt/wandisco/fusion/server/checkpoint
+      - fusion-b-opt-wandisco-fusion-server-dcone:/opt/wandisco/fusion/server/dcone
+      - fusion-b-usr-hdp:/usr/hdp
+      - ./fusion-common/license.key:/etc/wandisco/fusion/server/license.key      
+      - ./fusion-shared-b/stage/etc/hadoop:/etc/hadoop
+      - ./fusion-shared-b/stage/opt/wandisco/fusion-ui-server/properties/ui.properties:/opt/wandisco/fusion-ui-server/properties/ui.properties
+      - ./fusion-shared-b/stage/etc/wandisco/fusion/ihc/server/hdi-3.6:/etc/wandisco/fusion/ihc/server/hdi-3.6
+      - ./fusion-shared-b/stage/etc/wandisco/fusion/server/application.properties:/etc/wandisco/fusion/server/application.properties
+      - ./fusion-shared-b/stage/etc/wandisco/fusion/server/core-site.xml:/etc/wandisco/fusion/server/core-site.xml
+
+  ################
+  # END ZONE 2   #
+  ################
+
+networks:
+  # One Docker network is shared between both Zone 1 and Zone 2
+  fusion: {}
+
+volumes:
+  ##########
+  # Zone 1 #
+  ##########
+  
+  # The named log volume is mapped to all containers running in Zone 1
+  fusion-a-log-fusion:
+  
+  # Checkpoint volume (confirm if this is needed to persist across container restarts)
+  fusion-a-opt-wandisco-fusion-server-checkpoint:
+
+  # dcone volume to persist database changes across restarts
+  fusion-a-opt-wandisco-fusion-server-dcone:
+
+  # /usr/hdp (confirm if this is needed to persist across container restarts)
+  fusion-a-usr-hdp:
+
+  ##########
+  # Zone 2 #
+  ##########
+
+  # The named log volume is mapped to all containers running in Zone 2
+  fusion-b-log-fusion:
+
+  # Checkpoint volume (confirm if this is needed to persist across container restarts)
+  fusion-b-opt-wandisco-fusion-server-checkpoint:
+
+  # dcone volume to persist database changes across restarts
+  fusion-b-opt-wandisco-fusion-server-dcone:
+
+  # /usr/hdp (confirm if this is needed to persist across container restarts)
+  fusion-b-usr-hdp:
