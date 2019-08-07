@@ -4,7 +4,7 @@
 This repository contains a Docker Compose stack that deploys the WANdisco Fusion platform. The stack is designed for operation in two zones. The _first_ zone should be configured for the Hortonworks Data Platform ([HDP](https://hortonworks.com/products/data-platforms/hdp/)) on Hadoop, while the _second_ zone will be configured for [Azure Data Lake Storage Gen2](https://docs.microsoft.com/en-us/azure/storage/blobs/data-lake-storage-introduction). 
 
 ## Prerequisites 
-1. [Docker Compose](https://docs.docker.com/compose/install/) installed on a suitable host
+1. [Docker](https://docs.docker.com/install/overview/) and [Docker Compose](https://docs.docker.com/compose/install/) installed on a suitable host
 1. Hortonworks HDP 2.6.5 Cluster or Sandbox 
 1. Azure ADLS Gen 2 account (Client ID and Client secret) 
 
