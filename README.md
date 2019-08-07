@@ -47,3 +47,5 @@ docker-compose ps
 
 ## License
 This repository is Apache 2.0 licensed. Please see `./LICENSE` for more information.
+
+These images are provided for evaluation purposes. By pulling this image, you agree you have read, understood and accept the [WANdisco EULA](https://www.wandisco.com/eula).
