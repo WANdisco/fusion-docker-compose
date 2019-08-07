@@ -50,6 +50,8 @@ docker-compose ps
 
 > Note: The Docker managed volumes persist between container restarts. This ensures that any configuration and database changes are kept once you get up and running. You can remove them if you want to wipe out changes made _after_ initial launch, resetting the volumes. To remove them specify the `-v` flag to `docker-compose down`. 
 
+Temporary: WANdisco Node UIs will be running on the Docker host default port 8083 and 8583 with default username and password of admin/admin. 
+
 ## License
 This repository is Apache 2.0 licensed. Please see `./LICENSE` for more information.
 
