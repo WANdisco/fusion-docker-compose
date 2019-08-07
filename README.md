@@ -24,5 +24,26 @@ In zone 2, there is no Hadoop config, as it is configured for the Azure platform
 ### Ensure The Proper License Is Being Used
 By default, this repository contains a trial license key for trying out the WANdisco FUsion platform. Once the software is purchased, this license can be swapped out with the license for your copy by replacing the file at `./fusion-common/license.key`. 
 
+## Usage
+To interact with the Docker Compose stack, ensure you are in the same directory as the `docker-compose.yml`. 
+
+Then, to deploy the containers:
+```bash
+docker-compose up -d
+```
+
+To bring down the containers:
+```bash
+docker-compose down
+```
+
+To view the status of the deployed containers:
+```bash
+docker-compose ps
+```
+</br>
+
+> Note: The Docker managed volumes persist between container restarts. This ensures that any configuration and database changes are kept once you get up and running. You can remove them if you want to wipe out changes made _after_ initial launch, resetting the volumes. To remove them specify the `-v` flag to `docker-compose down`. 
+
 ## License
 This repository is Apache 2.0 licensed. Please see `./LICENSE` for more information.
