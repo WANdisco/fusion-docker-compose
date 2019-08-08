@@ -51,7 +51,7 @@ docker-compose ps
 > Note: The Docker managed volumes persist between container restarts. This ensures that any configuration and database changes are kept once you get up and running. You can remove them if you want to wipe out changes made _after_ initial launch, resetting the volumes. To remove them specify the `-v` flag to `docker-compose down`. 
 
 ### UI Access 
-Once started the Fusion User Interfaces should be accessable on http://localhost:8083 for HDP zone and http://localhost:8583 for Cloud storage with default username and password admin/admin.
+Fusion User Interfaces available on http://localhost:8083 for HDP and http://localhost:8583 for ADLS Gen2 with default username and password admin/admin.
 
 
 ## License
