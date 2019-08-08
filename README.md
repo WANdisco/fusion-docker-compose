@@ -57,4 +57,4 @@ Fusion User Interfaces available on http://localhost:8083 for HDP and http://loc
 ## License
 This repository is Apache 2.0 licensed. Please see `./LICENSE` for more information.
 
-The images provided through Dockerhub are provided for evaluation purposes. By pulling these images, you agree you have read, understood and accept the [WANdisco EULA](https://www.wandisco.com/eula).
+Images provided through Dockerhub are offered for evaluation purposes. By pulling these images, you agree you have read, understood and accept the [WANdisco EULA](https://www.wandisco.com/eula).
