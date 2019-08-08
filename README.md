@@ -26,9 +26,6 @@ In zone 2, there is no Hadoop config, as it is configured for the Azure platform
 - `/etc/wandisco/fusion/server/` : contains configuration specific to the main Fusion Server application component in zone 2
 - `stage/opt/wandisco/fusion-ui-server/properties` : contains configuration specific to the Fusion UI Server component in zone 2
 
-### Ensure The Proper License Is Being Used
-By default, this repository contains a trial license key for trying out the WANdisco FUsion platform. Once the software is purchased, this license can be swapped out with the license for your copy by replacing the file at `./fusion-common/license.key`. 
-
 ## Usage
 To interact with the Docker Compose stack, ensure you are in the same directory as the `docker-compose.yml`. 
 
@@ -53,6 +50,9 @@ docker-compose ps
 ### UI Access 
 Fusion User Interfaces available on http://localhost:8083 for HDP and http://localhost:8583 for ADLS Gen2 with default username and password admin/admin.
 
+
+### Ensure The Proper License Is Being Used
+By default, this repository contains a trial license key for trying out the WANdisco FUsion platform. Once the software is purchased, this license can be swapped out with the license for your copy by replacing the file at `./fusion-common/license.key`. 
 
 ## License
 This repository is Apache 2.0 licensed. Please see `./LICENSE` for more information.
