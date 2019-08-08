@@ -15,7 +15,9 @@ There are a series of steps that must be completed in order to properly deploy a
 
 1. Ensure the desired WANdisco license is stored at `./fusion-common/license.key` (An evaluation license is provided)
 
-1. Run ```bash
+1. Run 
+
+```bash
 docker-compose up -d
 ```
 
