@@ -5,7 +5,7 @@ This repository contains a Docker Compose stack that deploys the WANdisco Fusion
 
 ## Prerequisites 
 1. [Docker](https://docs.docker.com/install/overview/) and [Docker Compose](https://docs.docker.com/compose/install/) installed on a suitable host
-1. Hortonworks HDP 2.6.5 Cluster or Sandbox 
+1. Hortonworks HDP 2.6.5 Cluster* or [Sandbox](https://www.cloudera.com/downloads/hortonworks-sandbox/hdp.html)
 1. Azure ADLS Gen 2 account details (Tenant ID, Client ID, Client secret) 
 
 ## Installation Process
@@ -63,3 +63,5 @@ By default, this repository contains a trial license key for trying out the WANd
 This repository is Apache 2.0 licensed. Please see `./LICENSE` for more information.
 
 Images provided through Dockerhub are offered for evaluation purposes. By pulling these images, you agree you have read, understood and accept the [WANdisco EULA](https://www.wandisco.com/eula).
+
+Contact sales@wandisco.com for other distros and licensing. 
