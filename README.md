@@ -11,7 +11,7 @@ This repository contains a Docker Compose stack that deploys the WANdisco Fusion
 ## Installation Process
 There are a series of steps that must be completed in order to properly deploy and leverage WANdisco Fusion:
 
-1. [Download](https://github.com/WANdisco/fusion-docker-compose/archive/master.zip) abbd unzip the configuration files. Modify settings under `fusion-shared-a` and `fusion-shared-b` as required. 
+1. [Download](https://github.com/WANdisco/fusion-docker-compose/archive/master.zip) and unzip the configuration files. Modify settings under `fusion-shared-a` and `fusion-shared-b` as required. 
 
 1. Ensure the desired WANdisco license is stored at `./fusion-common/license.key` (An evaluation license is provided)
 
