@@ -1,0 +1,164 @@
+#################################################################################
+# Copyright (c) 2014-2019 WANdisco
+#
+#   Licensed under the Apache License, Version 2.0 (the "License");
+#   you may not use this file except in compliance with the License.
+#   You may obtain a copy of the License at
+#   http://www.apache.org/licenses/LICENSE-2.0
+#
+#   Apache License, Version 2.0
+#
+################################################################################
+#
+# This docker-compose.yml file creates all WANdisco Fusion services needed to
+# stand up an HDI zone.
+#
+# Services running in each zone
+#     Zone
+#         Fusion UI Server HDI  (fusion-ui-server-${ZONE_NAME})
+#         Fusion IHC Server     (fusion-ihc-server-${ZONE_NAME})
+#         Fusion Server         (fusion-server-${ZONE_NAME})
+#
+# Note: while version 3.7 is technically compatible with Docker 18.06 and
+# higher, this project was tested with only Docker 18.09 as of 2019-08-06.
+
+version: "3.7"
+
+services:
+  debug-${ZONE_NAME}:
+    image: ubuntu
+    command: ["sh", "-c", "sleep 1459103"]
+    volumes:
+      - logging-server-${ZONE_NAME}:/debug/server
+      - logging-ui-server-${ZONE_NAME}:/debug/ui-server
+      - logging-ihc-${ZONE_NAME}:/debug/ihc-server
+    networks:
+      - fusion
+
+  # Fusion UI Server
+  fusion-ui-server-${ZONE_NAME}:
+    image: wandisco/fusion-ui-server-hdi:2.14.1.0
+    networks:
+      - fusion
+    # Note: standard ports have been incremented by 500 to remove conflicts between Zone 1 and Zone 2
+    ports:
+      - ${FUSION_UI_SERVER_PORT}:${FUSION_UI_SERVER_PORT}
+      - ${FUSION_UI_SERVER_PORT_TLS}:${FUSION_UI_SERVER_PORT_TLS}
+    #environment:
+    #  - ZONE_NAME=${ZONE_NAME}
+    #  - ADLS_GEN=${ADLS_GEN}
+    #  - FUSION_SERVER_IHC_LISTENER_PORT=${FUSION_SERVER_IHC_LISTENER_PORT}
+    #  - FUSION_SERVER_HDFS_PORT=${FUSION_SERVER_HDFS_PORT}
+    #  - FUSION_SERVER_PORT=${FUSION_SERVER_PORT}
+    #  - FUSION_SERVER_TLS_PORT=${FUSION_SERVER_TLS_PORT}
+    #  - FUSION_UI_SERVER_PORT=${FUSION_UI_SERVER_PORT}
+    #  - FUSION_UI_SERVER_PORT_TLS=${FUSION_UI_SERVER_PORT_TLS}
+    #  - FUSION_UI_EXTERNAL_ADDRESS=${FUSION_UI_EXTERNAL_ADDRESS}
+    #  - FUSION_IHC_SERVER_PORT=${FUSION_IHC_SERVER_PORT}
+    #  - FUSION_IHC_SERVER_PORT_TLS=${FUSION_IHC_SERVER_PORT_TLS}
+    #  - FUSION_IHC_SERVER_JMX_PORT=${FUSION_IHC_SERVER_JMX_PORT}
+    #  - FUSION_REPLICATION_PORT=${FUSION_REPLICATION_PORT}
+    #  - FS_ADLS_HOME_HOSTNAME=${FS_ADLS_HOME_HOSTNAME}
+    #  - FS_ADLS_HOME_MOUNTPOINT=${FS_ADLS_HOME_MOUNTPOINT}
+    #  - FS_ADL_HANDSHAKE_USER=${FS_ADL_HANDSHAKE_USER}
+    #  - FS_ADL_OAUTH2_CREDENTIAL=${FS_ADL_OAUTH2_CREDENTIAL}
+    #  - FS_ADL_OAUTH2_REFRESH_URL=${FS_ADL_OAUTH2_REFRESH_URL}
+    #  - FS_ADL_OAUTH2_CLIENT_ID=${FS_ADL_OAUTH2_CLIENT_ID}
+    #  - FUSION_NODE_ID=${FUSION_NODE_ID}
+    env_file:
+      - "${ZONE_ENV}"
+    volumes:
+      - logging-ui-server-${ZONE_NAME}:/var/log/fusion
+      - fusion-${ZONE_NAME}-opt-wandisco-fusion-server-checkpoint:/opt/wandisco/fusion/server/checkpoint
+      - fusion-${ZONE_NAME}-usr-hdp:/usr/hdp
+
+  # Fusion IHC Server
+  fusion-ihc-server-${ZONE_NAME}:
+    image: wandisco/fusion-ihc-server-hdi:2.14.1.0
+    networks:
+      - fusion
+    # Note: standard ports have been incremented by 500 to remove conflicts between Zone 1 and Zone 2
+    ports:
+      - ${FUSION_IHC_SERVER_PORT}:${FUSION_IHC_SERVER_PORT}
+      - ${FUSION_IHC_SERVER_PORT_TLS}:${FUSION_IHC_SERVER_PORT_TLS}
+      - ${FUSION_IHC_SERVER_JMX_PORT}:${FUSION_IHC_SERVER_JMX_PORT}
+    #environment:
+    #  - ZONE_NAME=${ZONE_NAME}
+    #  - ADLS_GEN=${ADLS_GEN}
+    #  - FUSION_SERVER_HDFS_PORT=${FUSION_SERVER_HDFS_PORT}
+    #  - FUSION_IHC_SERVER_PORT=${FUSION_IHC_SERVER_PORT}
+    #  - FUSION_IHC_SERVER_PORT_TLS=${FUSION_IHC_SERVER_PORT_TLS}
+    #  - FUSION_IHC_SERVER_JMX_PORT=${FUSION_IHC_SERVER_JMX_PORT}
+    #  - FS_ADLS_HOME_HOSTNAME=${FS_ADLS_HOME_HOSTNAME}
+    #  - FS_ADLS_HOME_MOUNTPOINT=${FS_ADLS_HOME_MOUNTPOINT}
+    #  - FS_ADL_HANDSHAKE_USER=${FS_ADL_HANDSHAKE_USER}
+    #  - FS_ADL_OAUTH2_CREDENTIAL=${FS_ADL_OAUTH2_CREDENTIAL}
+    #  - FS_ADL_OAUTH2_REFRESH_URL=${FS_ADL_OAUTH2_REFRESH_URL}
+    #  - FS_ADL_OAUTH2_CLIENT_ID=${FS_ADL_OAUTH2_CLIENT_ID}
+    #  - FUSION_NODE_ID=${FUSION_NODE_ID}
+    env_file:
+      - "${ZONE_ENV}"
+    volumes:
+      - logging-ihc-${ZONE_NAME}:/var/log/fusion
+      - fusion-${ZONE_NAME}-opt-wandisco-fusion-server-checkpoint:/opt/wandisco/fusion/server/checkpoint
+      - fusion-${ZONE_NAME}-usr-hdp:/usr/hdp
+
+  # Fusion Server
+  fusion-server-${ZONE_NAME}:
+    image: wandisco/fusion-server-hdi:2.14.1.0
+    networks:
+      - fusion
+    # Note: standard ports have been incremented by 500 to remove conflicts between Zone 1 and Zone 2
+    ports:
+      - ${FUSION_SERVER_IHC_LISTENER_PORT}:${FUSION_SERVER_IHC_LISTENER_PORT}
+      - ${FUSION_SERVER_HDFS_PORT}:${FUSION_SERVER_HDFS_PORT}
+      - ${FUSION_SERVER_PORT}:${FUSION_SERVER_PORT}
+      - ${FUSION_SERVER_TLS_PORT}:${FUSION_SERVER_TLS_PORT}
+    environment:
+      - DB_ACTION=
+    #  - ZONE_NAME=${ZONE_NAME}
+    #  - ADLS_GEN=${ADLS_GEN}
+    #  - FUSION_SERVER_IHC_LISTENER_PORT=${FUSION_SERVER_IHC_LISTENER_PORT}
+    #  - FUSION_SERVER_HDFS_PORT=${FUSION_SERVER_HDFS_PORT}
+    #  - FUSION_SERVER_PORT=${FUSION_SERVER_PORT}
+    #  - FUSION_SERVER_TLS_PORT=${FUSION_SERVER_TLS_PORT}
+    #  - FUSION_UI_SERVER_PORT=${FUSION_UI_SERVER_PORT}
+    #  - FUSION_UI_SERVER_PORT_TLS=${FUSION_UI_SERVER_PORT_TLS}
+    #  - FUSION_UI_EXTERNAL_ADDRESS=${FUSION_UI_EXTERNAL_ADDRESS}
+    #  - FUSION_IHC_SERVER_PORT=${FUSION_IHC_SERVER_PORT}
+    #  - FUSION_IHC_SERVER_PORT_TLS=${FUSION_IHC_SERVER_PORT}
+    #  - FUSION_IHC_SERVER_JMX_PORT=${FUSION_IHC_SERVER_PORT}
+    #  - FUSION_REPLICATION_PORT=${FUSION_REPLICATION_PORT}
+    #  - FS_ADLS_HOME_HOSTNAME=${FS_ADLS_HOME_HOSTNAME}
+    #  - FS_ADLS_HOME_MOUNTPOINT=${FS_ADLS_HOME_MOUNTPOINT}
+    #  - FS_ADL_HANDSHAKE_USER=${FS_ADL_HANDSHAKE_USER}
+    #  - FS_ADL_OAUTH2_CREDENTIAL=${FS_ADL_OAUTH2_CREDENTIAL}
+    #  - FS_ADL_OAUTH2_REFRESH_URL=${FS_ADL_OAUTH2_REFRESH_URL}
+    #  - FS_ADL_OAUTH2_CLIENT_ID=${FS_ADL_OAUTH2_CLIENT_ID}
+    #  - FUSION_NODE_ID=${FUSION_NODE_ID}
+    env_file:
+      - "${ZONE_ENV}"
+    volumes:
+      - logging-server-${ZONE_NAME}:/var/log/fusion
+      - fusion-${ZONE_NAME}-opt-wandisco-fusion-server-checkpoint:/opt/wandisco/fusion/server/checkpoint
+      - fusion-${ZONE_NAME}-opt-wandisco-fusion-server-dcone:/opt/wandisco/fusion/server/dcone
+      - fusion-${ZONE_NAME}-usr-hdp:/usr/hdp
+
+networks:
+  # One Docker network is shared between both zones
+  fusion: {}
+
+volumes:
+  # The named logging volumes for all components
+  logging-server-${ZONE_NAME}:
+  logging-ui-server-${ZONE_NAME}:
+  logging-ihc-${ZONE_NAME}:
+
+  # Checkpoint volume (confirm if this is needed to persist across container restarts)
+  fusion-${ZONE_NAME}-opt-wandisco-fusion-server-checkpoint:
+
+  # dcone volume to persist database changes across restarts
+  fusion-${ZONE_NAME}-opt-wandisco-fusion-server-dcone:
+
+  # /usr/hdp (confirm if this is needed to persist across container restarts)
+  fusion-${ZONE_NAME}-usr-hdp:
