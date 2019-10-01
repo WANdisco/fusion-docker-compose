@@ -44,6 +44,7 @@ services:
     ports:
       - ${FUSION_UI_SERVER_PORT}:${FUSION_UI_SERVER_PORT}
       - ${FUSION_UI_SERVER_PORT_TLS}:${FUSION_UI_SERVER_PORT_TLS}
+    restart: always
     #environment:
     #  - ZONE_NAME=${ZONE_NAME}
     #  - ADLS_GEN=${ADLS_GEN}
@@ -83,6 +84,7 @@ services:
       - ${FUSION_IHC_SERVER_PORT}:${FUSION_IHC_SERVER_PORT}
       - ${FUSION_IHC_SERVER_PORT_TLS}:${FUSION_IHC_SERVER_PORT_TLS}
       - ${FUSION_IHC_SERVER_JMX_PORT}:${FUSION_IHC_SERVER_JMX_PORT}
+    restart: always
     #environment:
     #  - ZONE_NAME=${ZONE_NAME}
     #  - ADLS_GEN=${ADLS_GEN}
@@ -116,6 +118,7 @@ services:
       - ${FUSION_SERVER_HDFS_PORT}:${FUSION_SERVER_HDFS_PORT}
       - ${FUSION_SERVER_PORT}:${FUSION_SERVER_PORT}
       - ${FUSION_SERVER_TLS_PORT}:${FUSION_SERVER_TLS_PORT}
+    restart: always
     environment:
       - DB_ACTION=
     #  - ZONE_NAME=${ZONE_NAME}

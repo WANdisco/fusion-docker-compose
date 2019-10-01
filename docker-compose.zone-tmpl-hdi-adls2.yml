@@ -43,6 +43,7 @@ services:
     ports:
       - ${FUSION_UI_SERVER_PORT}:${FUSION_UI_SERVER_PORT}
       - ${FUSION_UI_SERVER_PORT_TLS}:${FUSION_UI_SERVER_PORT_TLS}
+    restart: always
     env_file:
       - "${ZONE_ENV}"
     #environment:
@@ -81,6 +82,7 @@ services:
       - ${FUSION_IHC_SERVER_PORT}:${FUSION_IHC_SERVER_PORT}
       - ${FUSION_IHC_SERVER_PORT_TLS}:${FUSION_IHC_SERVER_PORT_TLS}
       - ${FUSION_IHC_SERVER_JMX_PORT}:${FUSION_IHC_SERVER_JMX_PORT}
+    restart: always
     env_file:
       - "${ZONE_ENV}"
     #environment:
@@ -113,6 +115,7 @@ services:
       - ${FUSION_SERVER_HDFS_PORT}:${FUSION_SERVER_HDFS_PORT}
       - ${FUSION_SERVER_PORT}:${FUSION_SERVER_PORT}
       - ${FUSION_SERVER_TLS_PORT}:${FUSION_SERVER_TLS_PORT}
+    restart: always
     env_file:
       - "${ZONE_ENV}"
     environment:
