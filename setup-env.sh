@@ -11,12 +11,12 @@ fi
 # this script uses relative paths, this cd is more complex with a sourced script
 if [ $IS_SOURCED = 1 ]; then
   if [ -n "$BASH_SOURCE" ]; then
-    cd "$(dirname $BASH_SOURCE)" 
+    cd "$(dirname $BASH_SOURCE)"
   else
-    cd "$(dirname $CALLED)" 
+    cd "$(dirname $CALLED)"
   fi
 else
-  cd "$(dirname $0)" 
+  cd "$(dirname $0)"
 fi
 
 opt_f="compose.env"
@@ -134,6 +134,15 @@ validate_number() {
   esac
 }
 
+validate_file_path() {
+  value="$1"
+  if [ $value ] && [ ! -f $value ]; then
+    echo "Error: File path must exist"
+    return 1
+  fi
+  return 0
+}
+
 validate_zone_name() {
   zone_name=$1
   if [ -z "$zone_name" ] || echo "$zone_name" | egrep -q '[^a-z0-9\-]'; then
@@ -183,27 +192,31 @@ fi
 # run everything below in a subshell to avoid leaking env vars
 (
   SAVE_ENV=${COMMON_ENV}
-  
+
   # update settings when not defined or force update specified
-  
+
   ## load existing common variables
   [ -f "./${COMMON_ENV}" ] && load_file "./${COMMON_ENV}"
-  
+
   ## set variables for compose zone a
-  
+
   update_var ZONE_A_TYPE "Enter the first zone type" "" validate_zone_type
   update_var ZONE_A_NAME "Enter the first zone name" "" validate_zone_name
-  
+
   ## set variables for compose zone b
-  
+
   update_var ZONE_B_TYPE "Enter the second zone type" "" validate_zone_type
   update_var ZONE_B_NAME "Enter the second zone name" "" validate_zone_name
-  
+
   ## setup common file
   export ZONE_A_ENV ZONE_B_ENV ZONE_A_NAME ZONE_B_NAME
   # run the common conf
   . "./common.conf"
-  
+
+  if [ ${LICENSE_FILE} ]; then
+    export LICENSE_FILE_PATH="- ${LICENSE_FILE}:/etc/wandisco/fusion/server/license.key"
+  fi
+
   ## run zone a setup (use a subshell to avoid leaking env vars)
   (
     default_port_offset=0
@@ -229,7 +242,7 @@ fi
     envsubst <"docker-compose.zone-tmpl-${ZONE_TYPE}.yml" >"${COMPOSE_FILE_A_OUT}"
     set +a
   )
-  
+
   ## run zone b setup (use a subshell to avoid leaking env vars)
   (
     default_port_offset=500
@@ -255,7 +268,7 @@ fi
     envsubst <"docker-compose.zone-tmpl-${ZONE_TYPE}.yml" >"${COMPOSE_FILE_B_OUT}"
     set +a
   )
-  
+
   ## generate the common yml
   (
     set -a
@@ -279,4 +292,3 @@ if [ "$IS_SOURCED" = "0" ]; then
   echo "# Or you can manually export the following:"
   echo "export COMPOSE_FILE=\"${COMPOSE_FILE}\""
 fi
-
