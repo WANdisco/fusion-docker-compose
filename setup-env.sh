@@ -276,6 +276,7 @@ fi
     [ -f "${ZONE_B_ENV}" ] && load_file "./${ZONE_B_ENV}"
     [ -f "${ZONE_A_ENV}" ] && load_file "./${ZONE_A_ENV}"
     [ -f "./${COMMON_ENV}" ] && load_file "./${COMMON_ENV}"
+    ZONE_A_BASE_TYPE=$(echo ${ZONE_A_TYPE} | sed 's/-.*//g')
     # docker-compose -f docker-compose.common-tmpl.yml config >"${COMPOSE_FILE_COMMON_OUT}"
     envsubst <"docker-compose.common-tmpl.yml" >"${COMPOSE_FILE_COMMON_OUT}"
     set +a
