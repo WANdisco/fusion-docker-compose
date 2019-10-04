@@ -246,6 +246,10 @@ set +a
   # run the common conf
   . "./common.conf"
 
+  if [ ${LICENSE_FILE} ]; then
+    export LICENSE_FILE_PATH="- ${LICENSE_FILE}:/etc/wandisco/fusion/server/license.key"
+  fi
+
   ## run zone a setup (use a subshell to avoid leaking env vars)
   (
     default_port_offset=0

@@ -45,6 +45,7 @@ services:
     ports:
       - ${FUSION_UI_SERVER_PORT}:${FUSION_UI_SERVER_PORT}
       - ${FUSION_UI_SERVER_PORT_TLS}:${FUSION_UI_SERVER_PORT_TLS}
+    restart: always
     env_file:
       - "${ZONE_ENV}"
     volumes:
@@ -52,6 +53,7 @@ services:
       - fusion-${ZONE_NAME}-opt-wandisco-fusion-server-checkpoint:/opt/wandisco/fusion/server/checkpoint
       - fusion-${ZONE_NAME}-opt-wandisco-fusion-server-dcone:/opt/wandisco/fusion/server/dcone
       - fusion-${ZONE_NAME}-etc-wandisco:/etc/wandisco/fusion/server
+      ${LICENSE_FILE_PATH}
 
   # Fusion IHC Server
   fusion-ihc-server-${ZONE_NAME}:
@@ -65,12 +67,14 @@ services:
       - ${FUSION_IHC_SERVER_PORT}:${FUSION_IHC_SERVER_PORT}
       - ${FUSION_IHC_SERVER_PORT_TLS}:${FUSION_IHC_SERVER_PORT_TLS}
       - ${FUSION_IHC_SERVER_JMX_PORT}:${FUSION_IHC_SERVER_JMX_PORT}
+    restart: always
     env_file:
       - "${ZONE_ENV}"
     volumes:
       - logging-ihc-${ZONE_NAME}:/var/log/fusion
       - fusion-${ZONE_NAME}-opt-wandisco-fusion-server-checkpoint:/opt/wandisco/fusion/server/checkpoint
       - fusion-${ZONE_NAME}-etc-wandisco:/etc/wandisco/fusion/server
+      ${LICENSE_FILE_PATH}
 
   # Fusion Server
   fusion-server-${ZONE_NAME}:
@@ -83,6 +87,7 @@ services:
       - ${FUSION_SERVER_HDFS_PORT}:${FUSION_SERVER_HDFS_PORT}
       - ${FUSION_SERVER_PORT}:${FUSION_SERVER_PORT}
       - ${FUSION_SERVER_TLS_PORT}:${FUSION_SERVER_TLS_PORT}
+    restart: always
     environment:
       - DB_ACTION=
     env_file:
@@ -92,6 +97,7 @@ services:
       - fusion-${ZONE_NAME}-opt-wandisco-fusion-server-checkpoint:/opt/wandisco/fusion/server/checkpoint
       - fusion-${ZONE_NAME}-opt-wandisco-fusion-server-dcone:/opt/wandisco/fusion/server/dcone
       - fusion-${ZONE_NAME}-etc-wandisco:/etc/wandisco/fusion/server
+      ${LICENSE_FILE_PATH}
 
 networks:
   # One Docker network is shared between both zones

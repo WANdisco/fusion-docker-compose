@@ -14,7 +14,7 @@
 # for running in an HDP zone.
 #
 # Services running in each zone
-#     Zone 
+#     Zone
 #         Fusion NameNode Proxy (fusion-nn-proxy)
 #         Fusion UI Server HDP  (fusion-ui-server-${ZONE_NAME})
 #         Fusion IHC Server     (fusion-ihc-server-${ZONE_NAME})
@@ -42,7 +42,7 @@ services:
       - fusion
     env_file:
       - "${ZONE_ENV}"
-    ports: 
+    ports:
       - ${FUSION_NAME_NODE_PROXY_PORT}:${FUSION_NAME_NODE_PROXY_PORT}
     volumes:
       - logging-npx-${ZONE_NAME}:/var/log/fusion
@@ -57,6 +57,7 @@ services:
     ports:
       - ${FUSION_UI_SERVER_PORT}:${FUSION_UI_SERVER_PORT}
       - ${FUSION_UI_SERVER_PORT_TLS}:${FUSION_UI_SERVER_PORT_TLS}
+    restart: always
     env_file:
       - "${ZONE_ENV}"
     volumes:
@@ -64,6 +65,7 @@ services:
       - fusion-${ZONE_NAME}-opt-wandisco-fusion-server-checkpoint:/opt/wandisco/fusion/server/checkpoint
       - fusion-${ZONE_NAME}-opt-wandisco-fusion-server-dcone:/opt/wandisco/fusion/server/dcone
       - fusion-${ZONE_NAME}-etc-wandisco:/etc/wandisco/fusion/server
+      ${LICENSE_FILE_PATH}
 
   # Fusion IHC Server
   fusion-ihc-server-${ZONE_NAME}:
@@ -77,10 +79,12 @@ services:
     ports:
       - ${FUSION_IHC_SERVER_PORT}:${FUSION_IHC_SERVER_PORT}
       - ${FUSION_IHC_SERVER_JMX_PORT}:${FUSION_IHC_SERVER_JMX_PORT}
+    restart: always
     volumes:
       - logging-ihc-${ZONE_NAME}:/var/log/fusion
       - fusion-${ZONE_NAME}-opt-wandisco-fusion-server-checkpoint:/opt/wandisco/fusion/server/checkpoint
       - fusion-${ZONE_NAME}-etc-wandisco:/etc/wandisco/fusion/server
+      ${LICENSE_FILE_PATH}
 
   # Fusion Server
   fusion-server-${ZONE_NAME}:
@@ -92,6 +96,7 @@ services:
       - ${FUSION_SERVER_TLS_PORT}:${FUSION_SERVER_TLS_PORT}
       - ${FUSION_SERVER_IHC_LISTENER_PORT}:${FUSION_SERVER_IHC_LISTENER_PORT}
       - ${FUSION_SERVER_PORT}:${FUSION_SERVER_PORT}
+    restart: always
     env_file:
       - "${ZONE_ENV}"
     volumes:
@@ -99,6 +104,7 @@ services:
       - fusion-${ZONE_NAME}-opt-wandisco-fusion-server-checkpoint:/opt/wandisco/fusion/server/checkpoint
       - fusion-${ZONE_NAME}-opt-wandisco-fusion-server-dcone:/opt/wandisco/fusion/server/dcone
       - fusion-${ZONE_NAME}-etc-wandisco:/etc/wandisco/fusion/server
+      ${LICENSE_FILE_PATH}
 
 networks:
   # One Docker network is shared between both zones
@@ -110,7 +116,7 @@ volumes:
   logging-ui-server-${ZONE_NAME}:
   logging-ihc-${ZONE_NAME}:
   logging-npx-${ZONE_NAME}:
-  
+
   # Checkpoint volume (confirm if this is needed to persist across container restarts)
   fusion-${ZONE_NAME}-opt-wandisco-fusion-server-checkpoint:
 
