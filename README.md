@@ -59,12 +59,12 @@ Fusion UI is available at http://docker_host:8083 for First Zone and http://dock
 ### Updating the License Key
 The evaluation license provides a fully functional solution with limited data transfer capacity. THe license can be extended by contacting WANdisco sales - sales@wandisco.com.
 
-To apply an updated license key, add the following to common.env, run "./setup-env.sh -u" again and restart docker-compose:
+To apply an updated license key, add the following to common.env:
 
-common.env
+LICENSE_FILE=./path/to/license.key
 
-```LICENSE_FILE=./path/to/license.key
-```
+Then run "./setup-env.sh -u"  and restart docker-compose
+
 
 ## License
 This repository is Apache 2.0 licensed. Please see `./LICENSE` for more information.
