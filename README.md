@@ -61,6 +61,7 @@ The evaluation license provides a fully functional solution with limited data tr
 
 To apply an updated license key, add the following to common.env, run "./setup-env.sh -u" again and restart docker-compose:
 
+common.env
 ```LICENSE_FILE=./path/to/license.key```
 
 ## License
