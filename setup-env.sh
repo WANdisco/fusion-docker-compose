@@ -324,4 +324,6 @@ if [ "$IS_SOURCED" = "0" ]; then
   echo "#   . $0"
   echo "# Or you can manually export the following:"
   echo "export COMPOSE_FILE=\"${COMPOSE_FILE}\""
+  echo "Run docker-compose up -d to start the Fusion containers"
+  echo "Once Fusion starts browse to http://HOST:8080 to access the UI"
 fi
