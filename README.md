@@ -62,7 +62,9 @@ The evaluation license provides a fully functional solution with limited data tr
 To apply an updated license key, add the following to common.env, run "./setup-env.sh -u" again and restart docker-compose:
 
 common.env
-```LICENSE_FILE=./path/to/license.key```
+
+```LICENSE_FILE=./path/to/license.key
+```
 
 ## License
 This repository is Apache 2.0 licensed. Please see `./LICENSE` for more information.
