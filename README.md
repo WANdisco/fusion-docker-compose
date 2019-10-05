@@ -57,7 +57,12 @@ Fusion UI is available at http://docker_host:8083 for First Zone and http://dock
 
 
 ### Ensure The Proper License Is Being Used
-By default, this repository contains a trial license key for trying out the WANdisco FUsion platform. Once the software is purchased, this license can be swapped out with the license for your copy by replacing the file at `./fusion-common/license.key`. 
+Am evaluation license is provided by default. The license is fully functional but has limited data transfer capacity. It can be extended or upgraded by contacting WANdisco sales - sales@wandisco.com.
+
+If you wish to apply an updated license add the following line to common.env and run setup-env.sh -u to apply the license to the docker compose files, then docker-compose restart:
+
+common.env
+```LICENSE_FILE=./path/to/license.key ```
 
 ## License
 This repository is Apache 2.0 licensed. Please see `./LICENSE` for more information.
