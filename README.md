@@ -5,8 +5,7 @@ This repository contains a Docker Compose stack to deploys the WANdisco Fusion p
 
 ## Prerequisites 
 1. [Docker](https://docs.docker.com/install/overview/) and [Docker Compose](https://docs.docker.com/compose/install/) installed on a suitable host
-1. Details of either a Hortonworks HDP 2.6.5 Cluster or a CDH 5.13 Cluster which Fusion can connect to to reead or write data.
-1. And/Or details of an Azure ADLS Gen 1 or Gen 2 account. 
+1. Storage Details for either a Hortonworks HDP 2.6.5 Cluster, a CDH 5.13 Cluster, an Azure ADLS Gen 1 or Gen 2 account - Any of which Fusion can move data between.
 
 ## Installation Process
 There are a series of steps that must be completed in order to properly deploy and leverage WANdisco Fusion:
