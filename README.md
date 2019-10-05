@@ -56,13 +56,12 @@ docker-compose ps
 Fusion UI is available at http://docker_host:8083 for First Zone and http://docker_host:8583 for Second Zone, with username and password admin/admin.
 
 
-### Ensure The Proper License Is Being Used
-Am evaluation license is provided by default. The license is fully functional but has limited data transfer capacity. It can be extended or upgraded by contacting WANdisco sales - sales@wandisco.com.
+### Updating the License Key
+The evaluation license provides a fully functional solution with limited data transfer capacity. THe license can be extended by contacting WANdisco sales - sales@wandisco.com.
 
-If you wish to apply an updated license add the following line to common.env and run setup-env.sh -u to apply the license to the docker compose files, then docker-compose restart:
+To apply an updated license key, add the following to common.env, run "./setup-env.sh -u" again and restart docker-compose:
 
-common.env
-```LICENSE_FILE=./path/to/license.key ```
+```LICENSE_FILE=./path/to/license.key```
 
 ## License
 This repository is Apache 2.0 licensed. Please see `./LICENSE` for more information.
