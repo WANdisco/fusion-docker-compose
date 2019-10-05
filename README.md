@@ -1,7 +1,9 @@
 # WANdisco Fusion 
 
 ## Overview
-This repository contains a Docker Compose stack to deploys the WANdisco Fusion platform and provide a fully functional evaluation licene. The stack is designed for standalone operation in two zones or to deploy a ingle zone and connect to another Fusion server. The ./setup-env.sh script allows you to choose the desired platform and configure initial settings. 
+This repository contains a Docker Compose stack which deploys the WANdisco Fusion platform and provides a fully functional evaluation version which supports live migration between Hadoop (CDH, HDP, ASF) and Cloud storage (S3, ADLS). The stack is designed for standalone operation in two zones or as a single zone to connect with another Fusion server running elsewhere. 
+
+The ./setup-env.sh script allows you to choose the desired platform and configure initial settings before running docker-compose up -d. 
 
 ## Prerequisites 
 1. [Docker](https://docs.docker.com/install/overview/) and [Docker Compose](https://docs.docker.com/compose/install/) installed on a suitable host
