@@ -28,7 +28,7 @@ services:
 
   # This service performs the induction process as a Docker container job at launch.
   induction:
-    image: wandisco/fusion-server-${ZONE_A_BASE_TYPE}:2.14.1.0
+    image: wandisco/fusion-server-${INDUCTOR_TYPE}:${FUSION_BASE_VERSION}-${FUSION_IMAGE_RELEASE}
     networks:
       - fusion
     environment:
@@ -45,12 +45,11 @@ services:
 
   # Fusion OneUI Server
   fusion-oneui-server:
-    image: wandisco/fusion-oneui:2.14.1.0
+    image: wandisco/fusion-oneui:${FUSION_ONEUI_VERSION}
     networks:
       - fusion
     ports:
       - ${ONEUI_SERVER_PORT}:8080
-    # - ${ONEUI_SERVER_PORT_TLS}:${FUSION_ONEUI_SERVER_PORT_TLS}
     environment:
       - FUSION_SERVER_HOSTNAMES=http://fusion-server-${ZONE_A_NAME}:${ZONE_A_SERVER_PORT},http://fusion-server-${ZONE_B_NAME}:${ZONE_B_SERVER_PORT}
     volumes:

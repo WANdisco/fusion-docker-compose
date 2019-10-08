@@ -1,0 +1,2 @@
+./docker-compose.hdi.adls1.yml.tpl:./vars-hdi-adls1-2.14.1.0.env
+./docker-compose.hdp.yml.tpl:./vars-hdp-2.14.1.0.env

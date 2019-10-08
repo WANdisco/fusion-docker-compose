@@ -1,37 +1,35 @@
 # WANdisco Fusion 
 
 ## Overview
-This repository contains a Docker Compose stack that deploys the WANdisco Fusion platform. The stack is designed for operation in two zones. The _first_ zone should be configured for the Hortonworks Data Platform ([HDP](https://hortonworks.com/products/data-platforms/hdp/)) on Hadoop, while the _second_ zone will be configured for [Azure Data Lake Storage Gen2](https://docs.microsoft.com/en-us/azure/storage/blobs/data-lake-storage-introduction). 
+This repository contains a Docker Compose stack which deploys the WANdisco Fusion platform and provides a fully functional evaluation version to support live migration between Hadoop (CDH, HDP, ASF) and Cloud storage (S3, ADLS). The stack is designed for standalone operation in two zones or as a single zone to connect with another Fusion server. 
+
+The ./setup-env.sh script lets you choose the desired platform and configure storage settings before running docker-compose up -d. 
 
 ## Prerequisites 
 1. [Docker](https://docs.docker.com/install/overview/) and [Docker Compose](https://docs.docker.com/compose/install/) installed on a suitable host
-1. Hortonworks HDP 2.6.5 Cluster
-1. Azure ADLS Gen 2 account details (Tenant ID, Client ID, Client secret) 
+1. Storage Details for either a Hortonworks HDP 2.6.5 Cluster, a CDH 5.13 Cluster, an Azure ADLS Gen 1 or Gen 2 account - Any of which Fusion can move data between.
 
 ## Installation Process
 There are a series of steps that must be completed in order to properly deploy and leverage WANdisco Fusion:
 
-1. [Download](https://github.com/WANdisco/fusion-docker-compose/archive/master.zip) and unzip the configuration files. Modify settings under `fusion-shared-a` and `fusion-shared-b` as required. 
+1. [Download](https://github.com/WANdisco/fusion-docker-compose/archive/master.zip) and unzip or git clone the configuration files. 
 
-1. Ensure the desired WANdisco license is stored at `./fusion-common/license.key` (An evaluation license is provided)
+1. Run `./setup-env.sh` and follow the prompts
 
-1. From same directory as ./docker-compose.yml:
+1. Start the cluster(s) with:
 
 ```bash
 docker-compose up -d
 ```
 
 ### Modifying The Configuration
-In zone 1, there is Hadoop specific and WANdisco Fusion specific config that must be specified. This config is defined as follows under `fusion-shared-a`:
-- `stage/etc/hadoop/2.6.5.0-292/0/` : contains the Hadoop cluster configuration
-- `stage/etc/wandisco/fusion/ihc/server/hdp-2.6.5` : contains configuration specific to the Fusion IHC Server component in zone 1
-- `stage/etc/wandisco/fusion/server` : contains configuration specific to the main Fusion Server application component in zone 1
-- `stage/opt/wandisco/fusion-ui-server/properties` : contains configuration specific to the Fusion UI Server component in zone 1
+Configuration can be changed in the following files:
 
-In zone 2, there is no Hadoop config, as it is configured for the Azure platform. The config is defined for zone 2 under `fusion-shared-b` as:
-- `/etc/wandisco/fusion/ihc/server/hdi-3.6` : contains configuration specific to the Fusion IHC Server component in zone 2
-- `/etc/wandisco/fusion/server/` : contains configuration specific to the main Fusion Server application component in zone 2
-- `stage/opt/wandisco/fusion-ui-server/properties` : contains configuration specific to the Fusion UI Server component in zone 2
+- common.env
+- zone_a.env
+- zone_b.env (when a second zone has been configured)
+
+If you make changes to these files, run `./setup-env.sh` and they will be applied to the docker compose files.
 
 ## Usage
 To interact with the Docker Compose stack, ensure you are in the same directory as the `docker-compose.yml`. 
@@ -55,11 +53,18 @@ docker-compose ps
 > Note: The Docker managed volumes persist between container restarts. This ensures that any configuration and database changes are kept once you get up and running. You can remove them if you want to wipe out changes made _after_ initial launch, resetting the volumes. To remove them specify the `-v` flag to `docker-compose down`. 
 
 ### UI Access 
-Fusion UI is available at http://docker_host:8083 for HDP Zone and http://docker_host:8583 for ADLS Gen2, with username and password admin/admin.
+Fusion UI is available at http://docker_host:8083 for First Zone and http://docker_host:8583 for Second Zone, with username and password admin/admin.
 
 
-### Ensure The Proper License Is Being Used
-By default, this repository contains a trial license key for trying out the WANdisco FUsion platform. Once the software is purchased, this license can be swapped out with the license for your copy by replacing the file at `./fusion-common/license.key`. 
+### Updating the License Key
+The evaluation license provides a fully functional solution with limited data transfer capacity. THe license can be extended by contacting WANdisco sales - sales@wandisco.com.
+
+To apply an updated license key, add the following to common.env:
+
+LICENSE_FILE=./path/to/license.key
+
+Then run "./setup-env.sh -u"  and restart docker-compose
+
 
 ## License
 This repository is Apache 2.0 licensed. Please see `./LICENSE` for more information.

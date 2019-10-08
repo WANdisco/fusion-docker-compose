@@ -37,10 +37,11 @@ services:
 
   # Fusion UI Server
   fusion-ui-server-${ZONE_NAME}:
-    image: wandisco/fusion-ui-server-hdi:2.14.1.0
+    image: wandisco/fusion-ui-server-hdi:${FUSION_BASE_VERSION}-${FUSION_IMAGE_RELEASE}
+    depends_on:
+      - fusion-server-${ZONE_NAME}
     networks:
       - fusion
-    # Note: standard ports have been incremented by 500 to remove conflicts between Zone 1 and Zone 2
     ports:
       - ${FUSION_UI_SERVER_PORT}:${FUSION_UI_SERVER_PORT}
       - ${FUSION_UI_SERVER_PORT_TLS}:${FUSION_UI_SERVER_PORT_TLS}
@@ -50,12 +51,15 @@ services:
     volumes:
       - logging-ui-server-${ZONE_NAME}:/var/log/fusion
       - fusion-${ZONE_NAME}-opt-wandisco-fusion-server-checkpoint:/opt/wandisco/fusion/server/checkpoint
+      - fusion-${ZONE_NAME}-opt-wandisco-fusion-server-dcone:/opt/wandisco/fusion/server/dcone
       - fusion-${ZONE_NAME}-etc-wandisco:/etc/wandisco/fusion/server
       ${LICENSE_FILE_PATH}
 
   # Fusion IHC Server
   fusion-ihc-server-${ZONE_NAME}:
-    image: wandisco/fusion-ihc-server-hdi:2.14.1.0
+    image: wandisco/fusion-ihc-server-hdi:${FUSION_BASE_VERSION}-${FUSION_IMAGE_RELEASE}
+    depends_on:
+      - fusion-server-${ZONE_NAME}
     networks:
       - fusion
     # Note: standard ports have been incremented by 500 to remove conflicts between Zone 1 and Zone 2
@@ -74,7 +78,7 @@ services:
 
   # Fusion Server
   fusion-server-${ZONE_NAME}:
-    image: wandisco/fusion-server-hdi:2.14.1.0
+    image: wandisco/fusion-server-hdi:${FUSION_BASE_VERSION}-${FUSION_IMAGE_RELEASE}
     networks:
       - fusion
     # Note: standard ports have been incremented by 500 to remove conflicts between Zone 1 and Zone 2

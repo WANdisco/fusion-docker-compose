@@ -28,7 +28,7 @@ version: "3.7"
 services:
   debug-${ZONE_NAME}:
     image: ubuntu
-    command: ["sh", "-c", "sleep 1459103"]
+    command: ["tail", "-f", "/dev/null"]
     volumes:
       - logging-server-${ZONE_NAME}:/debug/server
       - logging-ui-server-${ZONE_NAME}:/debug/ui-server
@@ -37,17 +37,11 @@ services:
 
   # Fusion NameNode Proxy (NPX)
   fusion-nn-proxy-${ZONE_NAME}:
-    image: wandisco/fusion-nn-proxy-hdp:4.0.0.3
+    image: wandisco/fusion-nn-proxy-hdp:${FUSION_NN_PROXY_VERSION}-${FUSION_NN_PROXY_IMAGE_RELEASE}
     networks:
       - fusion
-    environment:
-      - FUSION_NAME_NODE_PROXY_PORT=${FUSION_NAME_NODE_PROXY_PORT}
-      - ZONE_NAME=${ZONE_NAME}
-      - HADOOP_NAME_NODE_HOSTNAME=${HADOOP_NAME_NODE_HOSTNAME}
-      - NAME_NODE_PROXY_HOSTNAME=${NAME_NODE_PROXY_HOSTNAME}
-      - ZOOKEEPER_ENSEMBLE=${ZOOKEEPER_ENSEMBLE}
-      - ZOOKEEPER_HOSTNAMES=${ZOOKEEPER_HOSTNAMES}
-      - ZOOKEEPER_BROKER_PORT=${ZOOKEEPER_BROKER_PORT}
+    env_file:
+      - "${ZONE_ENV}"
     ports:
       - ${FUSION_NAME_NODE_PROXY_PORT}:${FUSION_NAME_NODE_PROXY_PORT}
     volumes:
@@ -55,48 +49,31 @@ services:
 
   # Fusion UI Server
   fusion-ui-server-${ZONE_NAME}:
-    image: wandisco/fusion-ui-server-hdp:2.14.1.0
+    image: wandisco/fusion-ui-server-hdp:${FUSION_BASE_VERSION}-${FUSION_IMAGE_RELEASE}
+    depends_on:
+      - fusion-server-${ZONE_NAME}
     networks:
       - fusion
     ports:
       - ${FUSION_UI_SERVER_PORT}:${FUSION_UI_SERVER_PORT}
       - ${FUSION_UI_SERVER_PORT_TLS}:${FUSION_UI_SERVER_PORT_TLS}
     restart: always
-    environment:
-      - FUSION_UI_SERVER_PORT=${FUSION_UI_SERVER_PORT}
-      - FUSION_UI_SERVER_PORT_TLS=${FUSION_UI_SERVER_PORT_TLS}
-      - ZONE_NAME=${ZONE_NAME}
-      - NAME_NODE_PROXY_HOSTNAME=${NAME_NODE_PROXY_HOSTNAME}
-      - ZOOKEEPER_ENSEMBLE=${ZOOKEEPER_ENSEMBLE}
-      - ZOOKEEPER_HOSTNAMES=${ZOOKEEPER_HOSTNAMES}
-      - ZOOKEEPER_BROKER_PORT=${ZOOKEEPER_BROKER_PORT}
-      - HADOOP_NAME_NODE_HOSTNAME=${HADOOP_NAME_NODE_HOSTNAME}
-      - HADOOP_NAME_NODE_PORT=${HADOOP_NAME_NODE_PORT}
-      - FUSION_UI_EXTERNAL_ADDRESS=${FUSION_UI_EXTERNAL_ADDRESS}
+    env_file:
+      - "${ZONE_ENV}"
     volumes:
       - logging-ui-server-${ZONE_NAME}:/var/log/fusion
       - fusion-${ZONE_NAME}-opt-wandisco-fusion-server-checkpoint:/opt/wandisco/fusion/server/checkpoint
-      - fusion-${ZONE_NAME}-usr-hdp:/usr/hdp
+      - fusion-${ZONE_NAME}-opt-wandisco-fusion-server-dcone:/opt/wandisco/fusion/server/dcone
+      - fusion-${ZONE_NAME}-etc-wandisco:/etc/wandisco/fusion/server
       ${LICENSE_FILE_PATH}
 
   # Fusion IHC Server
   fusion-ihc-server-${ZONE_NAME}:
-    image: wandisco/fusion-ihc-server-hdp:2.14.1.0
-    environment:
-      - FUSION_SERVER_HDFS_PORT=${FUSION_SERVER_HDFS_PORT}
-      - FUSION_SERVER_PORT=${FUSION_SERVER_PORT}
-      - FUSION_SERVER_IHC_LISTENER_PORT=${FUSION_SERVER_IHC_LISTENER_PORT}
-      - FUSION_SERVER_TLS_PORT=${FUSION_SERVER_TLS_PORT}
-      - FUSION_REPLICATION_PORT=${FUSION_REPLICATION_PORT}
-      - FUSION_IHC_SERVER_PORT_TLS=${FUSION_IHC_SERVER_PORT_TLS}
-      - FUSION_IHC_SERVER_PORT=${FUSION_IHC_SERVER_PORT}
-      - FUSION_IHC_SERVER_JMX_PORT=${FUSION_IHC_SERVER_JMX_PORT}
-      - ZONE_NAME=${ZONE_NAME}
-      - HADOOP_NAME_NODE_HOSTNAME=${HADOOP_NAME_NODE_HOSTNAME}
-      - NAME_NODE_PROXY_HOSTNAME=${NAME_NODE_PROXY_HOSTNAME}
-      - ZOOKEEPER_ENSEMBLE=${ZOOKEEPER_ENSEMBLE}
-      - ZOOKEEPER_HOSTNAMES=${ZOOKEEPER_HOSTNAMES}
-      - ZOOKEEPER_BROKER_PORT=${ZOOKEEPER_BROKER_PORT}
+    image: wandisco/fusion-ihc-server-hdp:${FUSION_BASE_VERSION}-${FUSION_IMAGE_RELEASE}
+    depends_on:
+      - fusion-server-${ZONE_NAME}
+    env_file:
+      - "${ZONE_ENV}"
     networks:
       - fusion
     ports:
@@ -106,12 +83,12 @@ services:
     volumes:
       - logging-ihc-${ZONE_NAME}:/var/log/fusion
       - fusion-${ZONE_NAME}-opt-wandisco-fusion-server-checkpoint:/opt/wandisco/fusion/server/checkpoint
-      - fusion-${ZONE_NAME}-usr-hdp:/usr/hdp
+      - fusion-${ZONE_NAME}-etc-wandisco:/etc/wandisco/fusion/server
       ${LICENSE_FILE_PATH}
 
   # Fusion Server
   fusion-server-${ZONE_NAME}:
-    image: wandisco/fusion-server-hdp:2.14.1.0
+    image: wandisco/fusion-server-hdp:${FUSION_BASE_VERSION}-${FUSION_IMAGE_RELEASE}
     networks:
       - fusion
     ports:
@@ -120,29 +97,13 @@ services:
       - ${FUSION_SERVER_IHC_LISTENER_PORT}:${FUSION_SERVER_IHC_LISTENER_PORT}
       - ${FUSION_SERVER_PORT}:${FUSION_SERVER_PORT}
     restart: always
-    environment:
-      - FUSION_IHC_SERVER_PORT_TLS=${FUSION_IHC_SERVER_PORT_TLS}
-      - FUSION_IHC_SERVER_PORT=${FUSION_IHC_SERVER_PORT}
-      - FUSION_IHC_SERVER_JMX_PORT=${FUSION_IHC_SERVER_JMX_PORT}
-      - FUSION_REPLICATION_PORT=${FUSION_REPLICATION_PORT}
-      - FUSION_SERVER_TLS_PORT=${FUSION_SERVER_TLS_PORT}
-      - FUSION_SERVER_HDFS_PORT=${FUSION_SERVER_HDFS_PORT}
-      - FUSION_SERVER_IHC_LISTENER_PORT=${FUSION_SERVER_IHC_LISTENER_PORT}
-      - FUSION_SERVER_PORT=${FUSION_SERVER_PORT}
-      - FUSION_NODE_ID=${FUSION_NODE_ID}
-      - ZONE_NAME=${ZONE_NAME}
-      - DB_ACTION=
-      - FUSION_NAME_NODE_PROXY_PORT=${FUSION_NAME_NODE_PROXY_PORT}
-      - HADOOP_NAME_NODE_HOSTNAME=${HADOOP_NAME_NODE_HOSTNAME}
-      - NAME_NODE_PROXY_HOSTNAME=${NAME_NODE_PROXY_HOSTNAME}
-      - ZOOKEEPER_ENSEMBLE=${ZOOKEEPER_ENSEMBLE}
-      - ZOOKEEPER_HOSTNAMES=${ZOOKEEPER_HOSTNAMES}
-      - ZOOKEEPER_BROKER_PORT=${ZOOKEEPER_BROKER_PORT}
+    env_file:
+      - "${ZONE_ENV}"
     volumes:
       - logging-server-${ZONE_NAME}:/var/log/fusion
       - fusion-${ZONE_NAME}-opt-wandisco-fusion-server-checkpoint:/opt/wandisco/fusion/server/checkpoint
       - fusion-${ZONE_NAME}-opt-wandisco-fusion-server-dcone:/opt/wandisco/fusion/server/dcone
-      - fusion-${ZONE_NAME}-usr-hdp:/usr/hdp
+      - fusion-${ZONE_NAME}-etc-wandisco:/etc/wandisco/fusion/server
       ${LICENSE_FILE_PATH}
 
 networks:
@@ -162,5 +123,4 @@ volumes:
   # dcone volume to persist database changes across restarts
   fusion-${ZONE_NAME}-opt-wandisco-fusion-server-dcone:
 
-  # /usr/hdp (confirm if this is needed to persist across container restarts)
-  fusion-${ZONE_NAME}-usr-hdp:
+  fusion-${ZONE_NAME}-etc-wandisco:

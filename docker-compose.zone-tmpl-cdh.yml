@@ -39,18 +39,9 @@ services:
 
   # Fusion NameNode Proxy (NPX)
   fusion-nn-proxy-${ZONE_NAME}:
-    image: wandisco/fusion-nn-proxy-cdh:4.0.0.3
+    image: wandisco/fusion-nn-proxy-cdh:${FUSION_NN_PROXY_VERSION}-${FUSION_NN_PROXY_IMAGE_RELEASE}
     networks:
       - fusion
-    #environment:
-    #  - ZONE_NAME=${ZONE_NAME}
-    #  - NAME_NODE_PROXY_HOSTNAME=${NAME_NODE_PROXY_HOSTNAME}
-    #  - FUSION_NAME_NODE_PROXY_PORT=${NAME_NODE_PROXY_PORT}
-    #  - FUSION_SERVER_HDFS_PORT=${SERVER_HDFS_PORT}
-    #  - HADOOP_NAME_NODE_HOSTNAME=${HADOOP_NAME_NODE_HOSTNAME}
-    #  - ZOOKEEPER_ENSEMBLE=${ZOOKEEPER_ENSEMBLE}
-    #  - ZOOKEEPER_HOSTNAMES=${ZOOKEEPER_HOSTNAMES}
-    #  - ZOOKEEPER_BROKER_PORT=${ZOOKEEPER_BROKER_PORT}
     ports:
       - ${FUSION_NAME_NODE_PROXY_PORT}:${FUSION_NAME_NODE_PROXY_PORT}
     env_file:
@@ -60,71 +51,42 @@ services:
 
   # Fusion UI Server
   fusion-ui-server-${ZONE_NAME}:
-    image: wandisco/fusion-ui-server-cdh:2.14.1.0
+    image: wandisco/fusion-ui-server-cdh:${FUSION_BASE_VERSION}-${FUSION_IMAGE_RELEASE}
     networks:
       - fusion
     ports:
       - ${FUSION_UI_SERVER_PORT}:${FUSION_UI_SERVER_PORT}
       - ${FUSION_UI_SERVER_PORT_TLS}:${FUSION_UI_SERVER_PORT_TLS}
     restart: always
-    #environment:
-    #  - FUSION_SERVER_PORT=${SERVER_PORT}
-    #  - FUSION_UI_SERVER_PORT=${UI_SERVER_PORT}
-    #  - FUSION_UI_SERVER_PORT_TLS=${UI_SERVER_PORT_TLS}
-    #  - ZONE_NAME=${ZONE_NAME}
-    #  - ZONE_TYPE=${ZONE_TYPE}
-    #  - NAME_NODE_PROXY_HOSTNAME=${NAME_NODE_PROXY_HOSTNAME}
-    #  - FUSION_NAME_NODE_PROXY_PORT=${NAME_NODE_PROXY_PORT}
-    #  - ZOOKEEPER_ENSEMBLE=${ZOOKEEPER_ENSEMBLE}
-    #  - ZOOKEEPER_HOSTNAMES=${ZOOKEEPER_HOSTNAMES}
-    #  - ZOOKEEPER_BROKER_PORT=${ZOOKEEPER_BROKER_PORT}
-    #  - HADOOP_NAME_NODE_HOSTNAME=${HADOOP_NAME_NODE_HOSTNAME}
-    #  - HADOOP_NAME_NODE_PORT=${HADOOP_NAME_NODE_PORT}
-    #  - FUSION_UI_EXTERNAL_ADDRESS=${UI_EXTERNAL_ADDRESS}
     env_file:
       - "${ZONE_ENV}"
     volumes:
       - logging-ui-server-${ZONE_NAME}:/var/log/fusion
       - fusion-${ZONE_NAME}-opt-wandisco-fusion-server-checkpoint:/opt/wandisco/fusion/server/checkpoint
-      - fusion-${ZONE_NAME}-usr-cdh:/usr/cdh
+      - fusion-${ZONE_NAME}-opt-wandisco-fusion-server-dcone:/opt/wandisco/fusion/server/dcone
+      - fusion-${ZONE_NAME}-etc-wandisco:/etc/wandisco/fusion/server
       ${LICENSE_FILE_PATH}
+
   # Fusion IHC Server
   fusion-ihc-server-${ZONE_NAME}:
-    image: wandisco/fusion-ihc-server-cdh:2.14.1.0
-    #environment:
-    #  - FUSION_SERVER_HDFS_PORT=${SERVER_HDFS_PORT}
-    #  - FUSION_SERVER_PORT=${SERVER_PORT}
-    #  - FUSION_SERVER_IHC_LISTENER_PORT=${SERVER_IHC_LISTENER_PORT}
-    #  - FUSION_SERVER_TLS_PORT=${SERVER_TLS_PORT}
-    #  - FUSION_REPLICATION_PORT=${REPLICATION_PORT}
-    #  - FUSION_IHC_SERVER_PORT_TLS=${IHC_SERVER_PORT_TLS}
-    #  - FUSION_IHC_SERVER_PORT=${IHC_SERVER_PORT}
-    #  - FUSION_IHC_SERVER_JMX_PORT=${IHC_SERVER_JMX_PORT}
-    #  - ZONE_NAME=${ZONE_NAME}
-    #  - HADOOP_NAME_NODE_HOSTNAME=${HADOOP_NAME_NODE_HOSTNAME}
-    #  - HADOOP_NAME_NODE_PORT=${HADOOP_NAME_NODE_PORT}
-    #  - NAME_NODE_PROXY_HOSTNAME=${NAME_NODE_PROXY_HOSTNAME}
-    #  - FUSION_NAME_NODE_PROXY_PORT=${NAME_NODE_PROXY_PORT}
-    #  - ZOOKEEPER_ENSEMBLE=${ZOOKEEPER_ENSEMBLE}
-    #  - ZOOKEEPER_HOSTNAMES=${ZOOKEEPER_HOSTNAMES}
-    #  - ZOOKEEPER_BROKER_PORT=${ZOOKEEPER_BROKER_PORT}
+    image: wandisco/fusion-ihc-server-cdh:${FUSION_BASE_VERSION}-${FUSION_IMAGE_RELEASE}
     networks:
       - fusion
     ports:
       - ${FUSION_IHC_SERVER_PORT}:${FUSION_IHC_SERVER_PORT}
       - ${FUSION_IHC_SERVER_JMX_PORT}:${FUSION_IHC_SERVER_JMX_PORT}
+    restart: always
     env_file:
       - "${ZONE_ENV}"
-    restart: always
     volumes:
       - logging-ihc-${ZONE_NAME}:/var/log/fusion
       - fusion-${ZONE_NAME}-opt-wandisco-fusion-server-checkpoint:/opt/wandisco/fusion/server/checkpoint
-      - fusion-${ZONE_NAME}-usr-cdh:/usr/cdh
+      - fusion-${ZONE_NAME}-etc-wandisco:/etc/wandisco/fusion/server
       ${LICENSE_FILE_PATH}
 
   # Fusion Server
   fusion-server-${ZONE_NAME}:
-    image: wandisco/fusion-server-cdh:2.14.1.0
+    image: wandisco/fusion-server-cdh:${FUSION_BASE_VERSION}-${FUSION_IMAGE_RELEASE}
     networks:
       - fusion
     ports:
@@ -135,30 +97,13 @@ services:
     restart: always
     environment:
       - DB_ACTION=
-    #  - FUSION_NODE_ID=${NODE_ID}
-    #  - FUSION_IHC_SERVER_PORT_TLS=${IHC_SERVER_PORT_TLS}
-    #  - FUSION_IHC_SERVER_PORT=${IHC_SERVER_PORT}
-    #  - FUSION_IHC_SERVER_JMX_PORT=${IHC_SERVER_JMX_PORT}
-    #  - FUSION_REPLICATION_PORT=${REPLICATION_PORT}
-    #  - FUSION_SERVER_TLS_PORT=${SERVER_TLS_PORT}
-    #  - FUSION_SERVER_HDFS_PORT=${SERVER_HDFS_PORT}
-    #  - FUSION_SERVER_IHC_LISTENER_PORT=${SERVER_IHC_LISTENER_PORT}
-    #  - FUSION_SERVER_PORT=${SERVER_PORT}
-    #  - ZONE_NAME=${ZONE_NAME}
-    #  - HADOOP_NAME_NODE_HOSTNAME=${HADOOP_NAME_NODE_HOSTNAME}
-    #  - HADOOP_NAME_NODE_PORT=${HADOOP_NAME_NODE_PORT}
-    #  - NAME_NODE_PROXY_HOSTNAME=${NAME_NODE_PROXY_HOSTNAME}
-    #  - FUSION_NAME_NODE_PROXY_PORT=${NAME_NODE_PROXY_PORT}
-    #  - ZOOKEEPER_ENSEMBLE=${ZOOKEEPER_ENSEMBLE}
-    #  - ZOOKEEPER_HOSTNAMES=${ZOOKEEPER_HOSTNAMES}
-    #  - ZOOKEEPER_BROKER_PORT=${ZOOKEEPER_BROKER_PORT}
     env_file:
       - "${ZONE_ENV}"
     volumes:
       - logging-server-${ZONE_NAME}:/var/log/fusion
       - fusion-${ZONE_NAME}-opt-wandisco-fusion-server-checkpoint:/opt/wandisco/fusion/server/checkpoint
       - fusion-${ZONE_NAME}-opt-wandisco-fusion-server-dcone:/opt/wandisco/fusion/server/dcone
-      - fusion-${ZONE_NAME}-usr-cdh:/usr/cdh
+      - fusion-${ZONE_NAME}-etc-wandisco:/etc/wandisco/fusion/server
       ${LICENSE_FILE_PATH}
 
 networks:
@@ -178,5 +123,4 @@ volumes:
   # dcone volume to persist database changes across restarts
   fusion-${ZONE_NAME}-opt-wandisco-fusion-server-dcone:
 
-  # /usr/cdh (confirm if this is needed to persist across container restarts)
-  fusion-${ZONE_NAME}-usr-cdh:
+  fusion-${ZONE_NAME}-etc-wandisco:
