@@ -40,6 +40,7 @@ services:
   # Fusion NameNode Proxy (NPX)
   fusion-nn-proxy-${ZONE_NAME}:
     image: wandisco/fusion-nn-proxy-cdh:${FUSION_NN_PROXY_VERSION}-${FUSION_NN_PROXY_IMAGE_RELEASE}
+    restart: unless-stopped
     networks:
       - fusion
     ports:
@@ -52,6 +53,7 @@ services:
   # Fusion UI Server
   fusion-ui-server-${ZONE_NAME}:
     image: wandisco/fusion-ui-server-cdh:${FUSION_BASE_VERSION}-${FUSION_IMAGE_RELEASE}
+    restart: unless-stopped
     networks:
       - fusion
     ports:
@@ -70,6 +72,7 @@ services:
   # Fusion IHC Server
   fusion-ihc-server-${ZONE_NAME}:
     image: wandisco/fusion-ihc-server-cdh:${FUSION_BASE_VERSION}-${FUSION_IMAGE_RELEASE}
+    restart: unless-stopped
     networks:
       - fusion
     ports:
@@ -87,6 +90,7 @@ services:
   # Fusion Server
   fusion-server-${ZONE_NAME}:
     image: wandisco/fusion-server-cdh:${FUSION_BASE_VERSION}-${FUSION_IMAGE_RELEASE}
+    restart: unless-stopped
     networks:
       - fusion
     ports:

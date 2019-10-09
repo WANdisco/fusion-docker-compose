@@ -26,7 +26,7 @@
 version: "3.7"
 
 services:
-  debug-${ZONE_NAME}:
+  debug:
     image: ubuntu
     command: ["tail", "-f", "/dev/null"]
     volumes:
@@ -38,6 +38,7 @@ services:
   # Fusion NameNode Proxy (NPX)
   fusion-nn-proxy-${ZONE_NAME}:
     image: wandisco/fusion-nn-proxy-hdp:${FUSION_NN_PROXY_VERSION}-${FUSION_NN_PROXY_IMAGE_RELEASE}
+    restart: unless-stopped
     networks:
       - fusion
     env_file:
@@ -50,6 +51,7 @@ services:
   # Fusion UI Server
   fusion-ui-server-${ZONE_NAME}:
     image: wandisco/fusion-ui-server-hdp:${FUSION_BASE_VERSION}-${FUSION_IMAGE_RELEASE}
+    restart: unless-stopped
     depends_on:
       - fusion-server-${ZONE_NAME}
     networks:
@@ -57,7 +59,6 @@ services:
     ports:
       - ${FUSION_UI_SERVER_PORT}:${FUSION_UI_SERVER_PORT}
       - ${FUSION_UI_SERVER_PORT_TLS}:${FUSION_UI_SERVER_PORT_TLS}
-    restart: always
     env_file:
       - "${ZONE_ENV}"
     volumes:
@@ -70,6 +71,7 @@ services:
   # Fusion IHC Server
   fusion-ihc-server-${ZONE_NAME}:
     image: wandisco/fusion-ihc-server-hdp:${FUSION_BASE_VERSION}-${FUSION_IMAGE_RELEASE}
+    restart: unless-stopped
     depends_on:
       - fusion-server-${ZONE_NAME}
     env_file:
@@ -79,7 +81,6 @@ services:
     ports:
       - ${FUSION_IHC_SERVER_PORT}:${FUSION_IHC_SERVER_PORT}
       - ${FUSION_IHC_SERVER_JMX_PORT}:${FUSION_IHC_SERVER_JMX_PORT}
-    restart: always
     volumes:
       - logging-ihc-${ZONE_NAME}:/var/log/fusion
       - fusion-${ZONE_NAME}-opt-wandisco-fusion-server-checkpoint:/opt/wandisco/fusion/server/checkpoint
@@ -89,6 +90,7 @@ services:
   # Fusion Server
   fusion-server-${ZONE_NAME}:
     image: wandisco/fusion-server-hdp:${FUSION_BASE_VERSION}-${FUSION_IMAGE_RELEASE}
+    restart: unless-stopped
     networks:
       - fusion
     ports:
@@ -96,7 +98,6 @@ services:
       - ${FUSION_SERVER_TLS_PORT}:${FUSION_SERVER_TLS_PORT}
       - ${FUSION_SERVER_IHC_LISTENER_PORT}:${FUSION_SERVER_IHC_LISTENER_PORT}
       - ${FUSION_SERVER_PORT}:${FUSION_SERVER_PORT}
-    restart: always
     env_file:
       - "${ZONE_ENV}"
     volumes:

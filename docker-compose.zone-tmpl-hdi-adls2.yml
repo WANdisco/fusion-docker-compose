@@ -37,13 +37,13 @@ services:
 
   # Fusion UI Server
   fusion-ui-server-${ZONE_NAME}:
-    image: wandisco/fusion-ui-server-hdi:2.14.1.0
+    image: wandisco/fusion-ui-server-hdi:${FUSION_BASE_VERSION}-${FUSION_IMAGE_RELEASE}
+    restart: unless-stopped
     networks:
       - fusion
     ports:
       - ${FUSION_UI_SERVER_PORT}:${FUSION_UI_SERVER_PORT}
       - ${FUSION_UI_SERVER_PORT_TLS}:${FUSION_UI_SERVER_PORT_TLS}
-    restart: always
     env_file:
       - "${ZONE_ENV}"
     volumes:
@@ -54,15 +54,14 @@ services:
 
   # Fusion IHC Server
   fusion-ihc-server-${ZONE_NAME}:
-    image: wandisco/fusion-ihc-server-hdi:2.14.1.0
+    image: wandisco/fusion-ihc-server-hdi:${FUSION_BASE_VERSION}-${FUSION_IMAGE_RELEASE}
+    restart: unless-stopped
     networks:
       - fusion
-    # Note: standard ports have been incremented by 500 to remove conflicts between Zone 1 and Zone 2
     ports:
       - ${FUSION_IHC_SERVER_PORT}:${FUSION_IHC_SERVER_PORT}
       - ${FUSION_IHC_SERVER_PORT_TLS}:${FUSION_IHC_SERVER_PORT_TLS}
       - ${FUSION_IHC_SERVER_JMX_PORT}:${FUSION_IHC_SERVER_JMX_PORT}
-    restart: always
     env_file:
       - "${ZONE_ENV}"
     volumes:
@@ -73,16 +72,15 @@ services:
 
   # Fusion Server
   fusion-server-${ZONE_NAME}:
-    image: wandisco/fusion-server-hdi:2.14.1.0
+    image: wandisco/fusion-server-hdi:${FUSION_BASE_VERSION}-${FUSION_IMAGE_RELEASE}
+    restart: unless-stopped
     networks:
       - fusion
-    # Note: standard ports have been incremented by 500 to remove conflicts between Zone 1 and Zone 2
     ports:
       - ${FUSION_SERVER_IHC_LISTENER_PORT}:${FUSION_SERVER_IHC_LISTENER_PORT}
       - ${FUSION_SERVER_HDFS_PORT}:${FUSION_SERVER_HDFS_PORT}
       - ${FUSION_SERVER_PORT}:${FUSION_SERVER_PORT}
       - ${FUSION_SERVER_TLS_PORT}:${FUSION_SERVER_TLS_PORT}
-    restart: always
     env_file:
       - "${ZONE_ENV}"
     environment:

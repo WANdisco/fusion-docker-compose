@@ -46,6 +46,7 @@ services:
   # Fusion OneUI Server
   fusion-oneui-server:
     image: wandisco/fusion-oneui:${FUSION_ONEUI_VERSION}
+    restart: unless-stopped
     networks:
       - fusion
     ports:
