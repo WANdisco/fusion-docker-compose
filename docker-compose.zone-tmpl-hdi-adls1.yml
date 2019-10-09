@@ -29,9 +29,9 @@ services:
     image: ubuntu
     command: ["tail", "-f", "/dev/null"]
     volumes:
-      - logging-server-${ZONE_NAME}:/debug/server
-      - logging-ui-server-${ZONE_NAME}:/debug/ui-server
-      - logging-ihc-${ZONE_NAME}:/debug/ihc-server
+      - logging-server-${ZONE_NAME}:/debug/server-${ZONE_NAME}
+      - logging-ui-server-${ZONE_NAME}:/debug/ui-server-${ZONE_NAME}
+      - logging-ihc-${ZONE_NAME}:/debug/ihc-server-${ZONE_NAME}
     networks:
       - fusion
 
