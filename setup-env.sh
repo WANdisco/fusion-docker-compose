@@ -21,14 +21,14 @@ fi
 
 opt_f="compose.env"
 opt_h=0
-opt_u=0
+opt_a=0
 
 # functions
 usage() {
   echo "Usage: $0 [opts]"
+  echo " -a: all settings will be prompted"
   echo " -f file: main env file to use (default: ${opt_f})"
   echo " -h: this help message"
-  echo " -u: update settings"
   [ "$opt_h" = "1" ] && exit 0 || exit 1
 }
 
@@ -76,7 +76,7 @@ update_var() {
   # include the current/default in the prompt
   [ -n "${default}" ] && default_msg=" [${default}]" || default_msg=""
   # prompt the user if a value isn't already defined or override is set
-  if [ -z "${var_val}" -o "$opt_u" = "1" ]; then
+  if [ -z "${var_val}" -o "$opt_a" = "1" ]; then
     read -p "${var_msg}${default_msg}: " ${var_name}
   fi
   var_val=$(eval echo -n \"\$$var_name\")
@@ -168,11 +168,11 @@ validate_zone_type() {
 }
 
 # parse CLI
-while getopts 'f:hu' option; do
+while getopts 'af:h' option; do
   case $option in
+    a) opt_a=1;;
     f) opt_f="$OPTARG";;
     h) opt_h=1;;
-    u) opt_u=1;;
   esac
 done
 set +e
@@ -195,22 +195,26 @@ fi
 
 # run everything below in a subshell to avoid leaking env vars
 (
-  SAVE_ENV=${COMMON_ENV}
+  # common environment setup
 
-  # update settings when not defined or force update specified
+  SAVE_ENV=${COMMON_ENV}
 
   ## load existing common variables
   [ -f "./${COMMON_ENV}" ] && load_file "./${COMMON_ENV}"
 
+  ## default values for variables to avoid prompts
+  : "${ZONE_A_NAME:=zoneA}"
+  : "${ZONE_B_NAME:=zoneB}"
+
   ## set variables for compose zone a
 
   update_var ZONE_A_TYPE "Enter the first zone type" "" validate_zone_type
-  save_var ZONE_A_NAME zoneA "${SAVE_ENV}"
+  update_var ZONE_A_NAME "Enter the first zone name" "" validate_zone_name
 
   ## set variables for compose zone b
 
   update_var ZONE_B_TYPE "Enter the second zone type (or NONE to skip)" "" validate_zone_type
-  save_var ZONE_B_NAME zoneB "${SAVE_ENV}"
+  update_var ZONE_B_NAME "Enter the second zone name" "" validate_zone_name
 
   ## setup common file
   export ZONE_A_ENV ZONE_B_ENV ZONE_A_NAME ZONE_B_NAME
@@ -286,20 +290,19 @@ fi
     set +a
   )
 
+  # set compose variables
+  COMPOSE_FILE="${COMPOSE_FILE_COMMON_OUT}:${COMPOSE_FILE_A_OUT}"
+  if [ "$ZONE_B_TYPE" != "NONE" ]; then
+    COMPOSE_FILE="${COMPOSE_FILE}:${COMPOSE_FILE_B_OUT}"
+  fi
+
+  # write the .env file
+  save_var COMPOSE_FILE "$COMPOSE_FILE" .env
+
+  # instructions for the end user
+  echo "The environment has now been configured. You can run:"
+  echo "  docker-compose up -d"
+  echo "to start the Fusion containers."
+  echo "Once Fusion starts browse to http://$(hostname):${ONEUI_SERVER_PORT} to access the UI."
 )
 
-# export common compose file variables
-COMPOSE_FILE="${COMPOSE_FILE_COMMON_OUT}:${COMPOSE_FILE_A_OUT}"
-if [ "$ZONE_B_TYPE" != "NONE" ]; then
-  COMPOSE_FILE="${COMPOSE_FILE}:${COMPOSE_FILE_B_OUT}"
-fi
-export COMPOSE_FILE
-
-if [ "$IS_SOURCED" = "0" ]; then
-  echo "# This script should be sourced with:"
-  echo "#   . $0"
-  echo "# Or you can manually export the following:"
-  echo "export COMPOSE_FILE=\"${COMPOSE_FILE}\""
-  echo "# Then run \"docker-compose up -d\" to start the Fusion containers"
-  echo "# Once Fusion starts browse to http://$(hostname):8080 to access the UI"
-fi
