@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 
 CALLED=$_
 
@@ -38,6 +38,14 @@ load_file() {
   while IFS="=" read -r key value; do
     eval "$key=\"$value\""
   done <"$filename"
+}
+
+read_p() {
+  local prompt="$1"
+  local var_name="$2"
+
+  printf "%s" "$prompt"
+  read $var_name
 }
 
 generate_compose_var() {
@@ -89,7 +97,7 @@ update_var() {
   [ -n "${default}" ] && default_msg=" [${default}]" || default_msg=""
   # prompt the user if a value isn't already defined or override is set
   if [ -z "${var_val}" -o "$opt_u" = "1" ]; then
-    read -p "${var_msg}${default_msg}: " ${var_name}
+    read_p "${var_msg}${default_msg}: " ${var_name}
   fi
   var_val=$(eval echo -n \"\$$var_name\")
   # set the value to the default if an empty string entered
@@ -99,7 +107,7 @@ update_var() {
   fi
   # validate the input, rerun the prompt on validation failure
   while [ -n "${validate}" ] && ! eval "${validate}" "${var_val}"; do
-    read -p "${var_msg}: " ${var_name}
+    read_p "${var_msg}: " ${var_name}
     var_val=$(eval echo -n \"\$$var_name\")
   done
   if [ -n "${SAVE_ENV}" ]; then
@@ -226,12 +234,12 @@ set +a
 
   validate_zone_type "$ZONE_A_TYPE"
   update_var ZONE_A_TYPE "Enter the first zone type" "" validate_zone_type
-  ZONE_A_NAME=zoneA
+  update_var ZONE_A_NAME "Enter a name for the first zone" "$ZONE_A_TYPE" validate_zone_name
 
   ## set variables for compose zone b
   while :; do
     [ -n "$ZONE_B_TYPE" ] && break
-    read -p "Configure a second zone? (Y/n) "
+    read_p "Configure a second zone? (Y/n) " REPLY
     case ${REPLY:-y} in
       Y|y) break ;;
       N|n) ZONE_B_TYPE=NONE; break ;;
@@ -239,7 +247,9 @@ set +a
   done
 
   update_var ZONE_B_TYPE "Enter the second zone type" "" validate_zone_type
-  ZONE_B_NAME=zoneB
+  if [ "$ZONE_B_TYPE" != NONE ]; then
+    update_var ZONE_B_NAME "Enter a name for the second zone" "$ZONE_B_TYPE" validate_zone_name
+  fi
 
   ## setup common file
   export ZONE_A_ENV ZONE_B_ENV ZONE_A_NAME ZONE_B_NAME
