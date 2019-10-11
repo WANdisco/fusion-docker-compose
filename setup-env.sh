@@ -40,14 +40,6 @@ load_file() {
   done <"$filename"
 }
 
-read_p() {
-  local prompt="$1"
-  local var_name="$2"
-
-  printf "%s" "$prompt"
-  read $var_name
-}
-
 generate_compose_var() {
   (
     . "./${COMMON_ENV}"
@@ -97,7 +89,7 @@ update_var() {
   [ -n "${default}" ] && default_msg=" [${default}]" || default_msg=""
   # prompt the user if a value isn't already defined or override is set
   if [ -z "${var_val}" -o "$opt_u" = "1" ]; then
-    read_p "${var_msg}${default_msg}: " ${var_name}
+    read -p "${var_msg}${default_msg}: " ${var_name}
   fi
   var_val=$(eval echo -n \"\$$var_name\")
   # set the value to the default if an empty string entered
@@ -107,7 +99,7 @@ update_var() {
   fi
   # validate the input, rerun the prompt on validation failure
   while [ -n "${validate}" ] && ! eval "${validate}" "${var_val}"; do
-    read_p "${var_msg}: " ${var_name}
+    read -p "${var_msg}: " ${var_name}
     var_val=$(eval echo -n \"\$$var_name\")
   done
   if [ -n "${SAVE_ENV}" ]; then
@@ -239,7 +231,7 @@ set +a
   ## set variables for compose zone b
   while :; do
     [ -n "$ZONE_B_TYPE" ] && break
-    read_p "Configure a second zone? (Y/n) " REPLY
+    read -p "Configure a second zone? (Y/n) " REPLY
     case ${REPLY:-y} in
       Y|y) break ;;
       N|n) ZONE_B_TYPE=NONE; break ;;
