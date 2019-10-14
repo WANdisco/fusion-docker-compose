@@ -35,7 +35,9 @@ usage() {
 load_file() {
   filename="$1"
 
-  while IFS="=" read -r key value; do
+  while read line; do
+    key="$(echo "$line" | sed 's/=.*//')"
+    value="$(echo "$line" | sed 's/[^=]*=//')"
     eval "$key=\"$value\""
   done <"$filename"
 }
