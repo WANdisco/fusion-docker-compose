@@ -17,8 +17,7 @@
 #     Zone
 #         Fusion UI Server HDI  (fusion-ui-server-${ZONE_NAME})
 #         Fusion IHC Server     (fusion-ihc-server-${ZONE_NAME})
-#         Fusion Server         (fusion-server-${ZONE_NAME})
-#
+#         Fusion Server         (fusion-server-${ZONE_NAME}) #
 # Note: while version 3.7 is technically compatible with Docker 18.06 and
 # higher, this project was tested with only Docker 18.09 as of 2019-08-06.
 
@@ -39,6 +38,8 @@ services:
   fusion-ui-server-${ZONE_NAME}:
     image: wandisco/fusion-ui-server-hdi:${FUSION_BASE_VERSION}-${FUSION_IMAGE_RELEASE}
     restart: unless-stopped
+    depends_on:
+      - fusion-server-${ZONE_NAME}
     networks:
       - fusion
     ports:
@@ -56,6 +57,8 @@ services:
   fusion-ihc-server-${ZONE_NAME}:
     image: wandisco/fusion-ihc-server-hdi:${FUSION_BASE_VERSION}-${FUSION_IMAGE_RELEASE}
     restart: unless-stopped
+    depends_on:
+      - fusion-server-${ZONE_NAME}
     networks:
       - fusion
     ports:

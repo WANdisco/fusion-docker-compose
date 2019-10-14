@@ -54,6 +54,8 @@ services:
   fusion-ui-server-${ZONE_NAME}:
     image: wandisco/fusion-ui-server-cdh:${FUSION_BASE_VERSION}-${FUSION_IMAGE_RELEASE}
     restart: unless-stopped
+    depends_on:
+      - fusion-server-${ZONE_NAME}
     networks:
       - fusion
     ports:
@@ -73,6 +75,8 @@ services:
   fusion-ihc-server-${ZONE_NAME}:
     image: wandisco/fusion-ihc-server-cdh:${FUSION_BASE_VERSION}-${FUSION_IMAGE_RELEASE}
     restart: unless-stopped
+    depends_on:
+      - fusion-server-${ZONE_NAME}
     networks:
       - fusion
     ports:
