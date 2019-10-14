@@ -61,7 +61,6 @@ save_var() {
     # else append a value to the file
     echo "${var}=${new_val}" >> "${filename}"
   fi
-  eval "$var=\"$new_val\""
 }
 
 update_var() {
@@ -203,8 +202,8 @@ fi
   [ -f "./${COMMON_ENV}" ] && load_file "./${COMMON_ENV}"
 
   ## default values for variables to avoid prompts
-  : "${ZONE_A_NAME:=zoneA}"
-  : "${ZONE_B_NAME:=zoneB}"
+  : "${ZONE_A_NAME:=zone-a}"
+  : "${ZONE_B_NAME:=zone-b}"
 
   ## set variables for compose zone a
 
@@ -248,7 +247,8 @@ fi
     # run the zone type config
     . "./zone-${ZONE_TYPE}.conf"
     # re-load variables
-    load_file "./${ZONE_ENV}"
+    [ -f "./${COMMON_ENV}" ] && load_file "./${COMMON_ENV}"
+    [ -f "${ZONE_ENV}" ] && load_file "./${ZONE_ENV}"
     envsubst <"docker-compose.zone-tmpl-${ZONE_TYPE}.yml" >"${COMPOSE_FILE_A_OUT}"
     set +a
   )
@@ -274,7 +274,8 @@ fi
     # run the zone type config
     . "./zone-${ZONE_TYPE}.conf"
     # re-load variables
-    load_file "./${ZONE_ENV}"
+    [ -f "./${COMMON_ENV}" ] && load_file "./${COMMON_ENV}"
+    [ -f "${ZONE_ENV}" ] && load_file "./${ZONE_ENV}"
     envsubst <"docker-compose.zone-tmpl-${ZONE_TYPE}.yml" >"${COMPOSE_FILE_B_OUT}"
     set +a
   fi; )
