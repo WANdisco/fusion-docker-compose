@@ -34,6 +34,20 @@ services:
       - logging-ui-server-${ZONE_NAME}:/debug/ui-server
       - logging-ihc-${ZONE_NAME}:/debug/ihc-server
       - logging-npx-${ZONE_NAME}:/debug/npx
+      - logging-livehive-${ZONE_NAME}:/debug/livehive
+
+  # LiveHive
+  fusion-livehive-proxy-${ZONE_NAME}:
+    image: wandisco/fusion-livehive-proxy-hdp:${FUSION_LIVEHIVE_VERSION}
+    #-${FUSION_LIVEHIVE_PROXY_IMAGE_RELEASE}
+    networks:
+      - fusion
+    env_file:
+      - "${ZONE_ENV}"
+    ports:
+      - ${FUSION_LIVEHIVE_PROXY_PORT}:${FUSION_LIVEHIVE_PROXY_PORT}
+    volumes:
+      - logging-livehive-${ZONE_NAME}:/var/log/fusion
 
   # Fusion NameNode Proxy (NPX)
   fusion-nn-proxy-${ZONE_NAME}:
@@ -116,6 +130,7 @@ volumes:
   logging-ui-server-${ZONE_NAME}:
   logging-ihc-${ZONE_NAME}:
   logging-npx-${ZONE_NAME}:
+  logging-livehive-${ZONE_NAME}:
 
   # Checkpoint volume (confirm if this is needed to persist across container restarts)
   fusion-${ZONE_NAME}-opt-wandisco-fusion-server-checkpoint:

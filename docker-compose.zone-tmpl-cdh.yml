@@ -16,6 +16,7 @@
 # Services running in each zone
 #     Zone
 #         Fusion NameNode Proxy (fusion-nn-proxy)
+#         Fusion LiveHive Proxy (fusion-livehive-proxy)
 #         Fusion UI Server CDH  (fusion-ui-server-${ZONE_NAME})
 #         Fusion IHC Server     (fusion-ihc-server-${ZONE_NAME})
 #         Fusion Server         (fusion-server-${ZONE_NAME})
@@ -37,6 +38,19 @@ services:
       - "${ZONE_ENV}"
     volumes:
       - logging-npx-${ZONE_NAME}:/var/log/fusion
+
+  # LiveHive
+  fusion-livehive-proxy-${ZONE_NAME}:
+    image: wandisco/fusion-livehive-proxy-cdh:${FUSION_LIVEHIVE_VERSION}
+    #-${FUSION_LIVEHIVE_PROXY_IMAGE_RELEASE}
+    networks:
+      - fusion
+    env_file:
+      - "${ZONE_ENV}"
+    ports:
+      - ${FUSION_LIVEHIVE_PROXY_PORT}:${FUSION_LIVEHIVE_PROXY_PORT}
+    volumes:
+      - logging-livehive-${ZONE_NAME}:/var/log/fusion
 
   # Fusion UI Server
   fusion-ui-server-${ZONE_NAME}:
@@ -110,6 +124,7 @@ volumes:
   logging-ui-server-${ZONE_NAME}:
   logging-ihc-${ZONE_NAME}:
   logging-npx-${ZONE_NAME}:
+  logging-livehive-${ZONE_NAME}:
 
   # Checkpoint volume (confirm if this is needed to persist across container restarts)
   fusion-${ZONE_NAME}-opt-wandisco-fusion-server-checkpoint:
