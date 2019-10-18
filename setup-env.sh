@@ -4,7 +4,7 @@ CALLED=$_
 
 # check if script has been sourced
 IS_SOURCED=1
-if [ "$0" = "$BASH_SOURCE" -o "$0" = "$CALLED" ]; then
+if [ "$0" = "$BASH_SOURCE" -o "$0" = "$CALLED" -o -z "$CALLED" ]; then
   IS_SOURCED=0
 fi
 
@@ -29,10 +29,11 @@ inside_container() {
 }
 if ! inside_container && ( \
        [ "$(uname -s)" != "Linux" ] \
-    || [ -x "$(command -v envsubst)" ] \
+    || [ ! -x "$(command -v envsubst)" ] \
     ); then
   # TODO: this image needs to be moved to WANdisco's repos
   # for now building on the fly
+  # echo "Running setup-env inside a container" >&2
   docker image inspect wandisco/setup-env >/dev/null 2>&1 \
     || docker build -t wandisco/setup-env .
   docker run -it --rm \
