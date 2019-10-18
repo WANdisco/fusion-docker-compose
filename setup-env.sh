@@ -1,8 +1,8 @@
-#!/bin/bash
+#!/bin/sh
 
 CALLED=$_
 
-# check if script has been sourced, and if not, output for parsing by eval $(<setup-env.sh)
+# check if script has been sourced
 IS_SOURCED=1
 if [ "$0" = "$BASH_SOURCE" -o "$0" = "$CALLED" ]; then
   IS_SOURCED=0
@@ -17,6 +17,29 @@ if [ $IS_SOURCED = 1 ]; then
   fi
 else
   cd "$(dirname $0)"
+fi
+
+# check if not running inside a container and missing prereq
+inside_container() {
+  if grep -q '1:name=systemd:/docker/' </proc/self/cgroup; then
+    return 0
+  else
+    return 1
+  fi
+}
+if ! inside_container && ( \
+       [ "$(uname -s)" != "Linux" ] \
+    || [ -x "$(command -v envsubst)" ] \
+    ); then
+  # TODO: this image needs to be moved to WANdisco's repos
+  # for now building on the fly
+  docker image inspect wandisco/setup-env >/dev/null 2>&1 \
+    || docker build -t wandisco/setup-env .
+  docker run -it --rm \
+    -u "$(id -u):$(id -g)" \
+    -v "$(pwd):$(pwd)" -w "$(pwd)" \
+    wandisco/setup-env ./setup-env.sh "$@"
+  exit $?
 fi
 
 opt_f="compose.env"
