@@ -25,19 +25,20 @@
 version: "3.7"
 
 services:
-  debug-${ZONE_NAME}:
+  debug:
     image: ubuntu
-    command: ["sh", "-c", "sleep 1459103"]
+    command: ["tail", "-f", "/dev/null"]
     volumes:
-      - logging-server-${ZONE_NAME}:/debug/server
-      - logging-ui-server-${ZONE_NAME}:/debug/ui-server
-      - logging-ihc-${ZONE_NAME}:/debug/ihc-server
+      - logging-server-${ZONE_NAME}:/debug/server-${ZONE_NAME}
+      - logging-ui-server-${ZONE_NAME}:/debug/ui-server-${ZONE_NAME}
+      - logging-ihc-${ZONE_NAME}:/debug/ihc-server-${ZONE_NAME}
     networks:
       - fusion
 
   # Fusion UI Server
   fusion-ui-server-${ZONE_NAME}:
     image: wandisco/fusion-ui-server-hdi:${FUSION_BASE_VERSION}-${FUSION_IMAGE_RELEASE}
+    restart: unless-stopped
     depends_on:
       - fusion-server-${ZONE_NAME}
     networks:
@@ -45,7 +46,6 @@ services:
     ports:
       - ${FUSION_UI_SERVER_PORT}:${FUSION_UI_SERVER_PORT}
       - ${FUSION_UI_SERVER_PORT_TLS}:${FUSION_UI_SERVER_PORT_TLS}
-    restart: always
     env_file:
       - "${ZONE_ENV}"
     volumes:
@@ -58,16 +58,15 @@ services:
   # Fusion IHC Server
   fusion-ihc-server-${ZONE_NAME}:
     image: wandisco/fusion-ihc-server-hdi:${FUSION_BASE_VERSION}-${FUSION_IMAGE_RELEASE}
+    restart: unless-stopped
     depends_on:
       - fusion-server-${ZONE_NAME}
     networks:
       - fusion
-    # Note: standard ports have been incremented by 500 to remove conflicts between Zone 1 and Zone 2
     ports:
       - ${FUSION_IHC_SERVER_PORT}:${FUSION_IHC_SERVER_PORT}
       - ${FUSION_IHC_SERVER_PORT_TLS}:${FUSION_IHC_SERVER_PORT_TLS}
       - ${FUSION_IHC_SERVER_JMX_PORT}:${FUSION_IHC_SERVER_JMX_PORT}
-    restart: always
     env_file:
       - "${ZONE_ENV}"
     volumes:
@@ -79,15 +78,14 @@ services:
   # Fusion Server
   fusion-server-${ZONE_NAME}:
     image: wandisco/fusion-server-hdi:${FUSION_BASE_VERSION}-${FUSION_IMAGE_RELEASE}
+    restart: unless-stopped
     networks:
       - fusion
-    # Note: standard ports have been incremented by 500 to remove conflicts between Zone 1 and Zone 2
     ports:
       - ${FUSION_SERVER_IHC_LISTENER_PORT}:${FUSION_SERVER_IHC_LISTENER_PORT}
       - ${FUSION_SERVER_HDFS_PORT}:${FUSION_SERVER_HDFS_PORT}
       - ${FUSION_SERVER_PORT}:${FUSION_SERVER_PORT}
       - ${FUSION_SERVER_TLS_PORT}:${FUSION_SERVER_TLS_PORT}
-    restart: always
     environment:
       - DB_ACTION=
     env_file:

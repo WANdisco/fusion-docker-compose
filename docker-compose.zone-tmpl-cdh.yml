@@ -26,9 +26,21 @@
 version: "3.7"
 
 services:
+  debug:
+    image: ubuntu
+    command: ["tail", "-f", "/dev/null"]
+    volumes:
+      - logging-server-${ZONE_NAME}:/debug/server-${ZONE_NAME}
+      - logging-ui-server-${ZONE_NAME}:/debug/ui-server-${ZONE_NAME}
+      - logging-ihc-${ZONE_NAME}:/debug/ihc-server-${ZONE_NAME}
+      - logging-npx-${ZONE_NAME}:/debug/npx-${ZONE_NAME}
+    networks:
+      - fusion
+
   # Fusion NameNode Proxy (NPX)
   fusion-nn-proxy-${ZONE_NAME}:
     image: wandisco/fusion-nn-proxy-cdh:${FUSION_NN_PROXY_VERSION}-${FUSION_NN_PROXY_IMAGE_RELEASE}
+    restart: unless-stopped
     networks:
       - fusion
     ports:
@@ -40,9 +52,10 @@ services:
 
   # Fusion UI Server
   fusion-ui-server-${ZONE_NAME}:
+    image: wandisco/fusion-ui-server-cdh:${FUSION_BASE_VERSION}-${FUSION_IMAGE_RELEASE}
+    restart: unless-stopped
     depends_on:
       - fusion-server-${ZONE_NAME}
-    image: wandisco/fusion-ui-server-cdh:${FUSION_BASE_VERSION}-${FUSION_IMAGE_RELEASE}
     networks:
       - fusion
     ports:
@@ -58,10 +71,10 @@ services:
       - fusion-${ZONE_NAME}-etc-wandisco:/etc/wandisco/fusion/server
       ${LICENSE_FILE_PATH}
 
-
   # Fusion IHC Server
   fusion-ihc-server-${ZONE_NAME}:
     image: wandisco/fusion-ihc-server-cdh:${FUSION_BASE_VERSION}-${FUSION_IMAGE_RELEASE}
+    restart: unless-stopped
     depends_on:
       - fusion-server-${ZONE_NAME}
     networks:
@@ -81,6 +94,7 @@ services:
   # Fusion Server
   fusion-server-${ZONE_NAME}:
     image: wandisco/fusion-server-cdh:${FUSION_BASE_VERSION}-${FUSION_IMAGE_RELEASE}
+    restart: unless-stopped
     networks:
       - fusion
     ports:

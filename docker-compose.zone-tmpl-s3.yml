@@ -25,13 +25,13 @@
 version: "3.7"
 
 services:
-  debug-${ZONE_NAME}:
+  debug:
     image: ubuntu
     command: ["tail", "-f", "/dev/null"]
     volumes:
-      - logging-server-${ZONE_NAME}:/debug/server
-      - logging-ui-server-${ZONE_NAME}:/debug/ui-server
-      - logging-ihc-${ZONE_NAME}:/debug/ihc-server
+      - logging-server-${ZONE_NAME}:/debug/server-${ZONE_NAME}
+      - logging-ui-server-${ZONE_NAME}:/debug/ui-server-${ZONE_NAME}
+      - logging-ihc-${ZONE_NAME}:/debug/ihc-server-${ZONE_NAME}
     networks:
       - fusion
 
@@ -45,7 +45,7 @@ services:
     ports:
       - ${FUSION_UI_SERVER_PORT}:${FUSION_UI_SERVER_PORT}
       - ${FUSION_UI_SERVER_PORT_TLS}:${FUSION_UI_SERVER_PORT_TLS}
-    restart: always
+    restart: unless-stopped
     env_file:
       - "${ZONE_ENV}"
     volumes:
@@ -68,7 +68,7 @@ services:
       - ${FUSION_IHC_SERVER_PORT}:${FUSION_IHC_SERVER_PORT}
       - ${FUSION_IHC_SERVER_PORT_TLS}:${FUSION_IHC_SERVER_PORT_TLS}
       - ${FUSION_IHC_SERVER_JMX_PORT}:${FUSION_IHC_SERVER_JMX_PORT}
-    restart: always
+    restart: unless-stopped
     env_file:
       - "${ZONE_ENV}"
     volumes:
@@ -89,7 +89,7 @@ services:
       - ${FUSION_SERVER_HDFS_PORT}:${FUSION_SERVER_HDFS_PORT}
       - ${FUSION_SERVER_PORT}:${FUSION_SERVER_PORT}
       - ${FUSION_SERVER_TLS_PORT}:${FUSION_SERVER_TLS_PORT}
-    restart: always
+    restart: unless-stopped
     environment:
       - DB_ACTION=
     env_file:
