@@ -225,7 +225,7 @@ set +a
   ## set variables for compose zone a
 
   validate_zone_type "$ZONE_A_TYPE"
-  update_var ZONE_A_TYPE "Enter the first zone type" "" validate_zone_type
+  update_var ZONE_A_TYPE "Enter the first zone type" "Press enter for a list" validate_zone_type
   update_var ZONE_A_NAME "Enter a name for the first zone" "$ZONE_A_TYPE" validate_zone_name
 
   ## set variables for compose zone b
@@ -238,7 +238,7 @@ set +a
     esac
   done
 
-  update_var ZONE_B_TYPE "Enter the second zone type" "" validate_zone_type
+  update_var ZONE_B_TYPE "Enter the second zone type" "Press enter for a list" validate_zone_type
   if [ "$ZONE_B_TYPE" != NONE ]; then
     update_var ZONE_B_NAME "Enter a name for the second zone" "$ZONE_B_TYPE" validate_zone_name
   fi
