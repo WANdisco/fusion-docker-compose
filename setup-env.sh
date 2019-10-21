@@ -1,10 +1,10 @@
-#!/bin/bash
+#!/bin/sh
 
 CALLED=$_
 
-# check if script has been sourced, and if not, output for parsing by eval $(<setup-env.sh)
+# check if script has been sourced
 IS_SOURCED=1
-if [ "$0" = "$BASH_SOURCE" -o "$0" = "$CALLED" ]; then
+if [ "$0" = "$BASH_SOURCE" -o "$0" = "$CALLED" -o -z "$CALLED" ]; then
   IS_SOURCED=0
 fi
 
@@ -19,37 +19,51 @@ else
   cd "$(dirname $0)"
 fi
 
+# check if not running inside a container and missing prereq
+inside_container() {
+  if grep -q '1:name=systemd:/docker/' </proc/self/cgroup; then
+    return 0
+  else
+    return 1
+  fi
+}
+if ! inside_container && ( \
+       [ "$(uname -s)" != "Linux" ] \
+    || [ ! -x "$(command -v envsubst)" ] \
+    ); then
+  # TODO: this image needs to be moved to WANdisco's repos
+  # for now building on the fly
+  # echo "Running setup-env inside a container" >&2
+  docker image inspect wandisco/setup-env >/dev/null 2>&1 \
+    || docker build -t wandisco/setup-env .
+  docker run -it --rm \
+    -u "$(id -u):$(id -g)" \
+    -v "$(pwd):$(pwd)" -w "$(pwd)" \
+    wandisco/setup-env ./setup-env.sh "$@"
+  exit $?
+fi
+
 opt_f="compose.env"
 opt_h=0
-opt_u=0
+opt_a=0
 
 # functions
 usage() {
   echo "Usage: $0 [opts]"
+  echo " -a: all settings will be prompted"
   echo " -f file: main env file to use (default: ${opt_f})"
   echo " -h: this help message"
-  echo " -u: update settings"
   [ "$opt_h" = "1" ] && exit 0 || exit 1
 }
 
 load_file() {
   filename="$1"
 
-  while IFS="=" read -r key value; do
+  while read line; do
+    key="$(echo "$line" | sed 's/=.*//')"
+    value="$(echo "$line" | sed 's/[^=]*=//')"
     eval "$key=\"$value\""
   done <"$filename"
-}
-
-generate_compose_var() {
-  (
-    . "./${COMMON_ENV}"
-    printf "%s:%s" "${COMPOSE_FILE_COMMON_OUT}" "${COMPOSE_FILE_A_OUT}"
-    if [ "$ZONE_B_TYPE" = NONE ]; then
-      printf "\n"
-      exit 0
-    fi
-    printf ":%s\n" "${COMPOSE_FILE_B_OUT}"
-  )
 }
 
 save_var() {
@@ -73,7 +87,6 @@ save_var() {
     # else append a value to the file
     echo "${var}=${new_val}" >> "${filename}"
   fi
-  eval "$var=\"$new_val\""
 }
 
 update_var() {
@@ -88,7 +101,7 @@ update_var() {
   # include the current/default in the prompt
   [ -n "${default}" ] && default_msg=" [${default}]" || default_msg=""
   # prompt the user if a value isn't already defined or override is set
-  if [ -z "${var_val}" -o "$opt_u" = "1" ]; then
+  if [ -z "${var_val}" -o "$opt_a" = "1" ]; then
     read -p "${var_msg}${default_msg}: " ${var_name}
   fi
   var_val=$(eval echo -n \"\$$var_name\")
@@ -146,7 +159,7 @@ validate_number() {
 
 validate_file_path() {
   value="$1"
-  if [ $value ] && [ ! -f $value ]; then
+  if [ -z "$value" ] || [ "$value" != "NONE" -a ! -f "$value" ]; then
     echo "Error: File path must exist"
     return 1
   fi
@@ -180,11 +193,11 @@ validate_zone_type() {
 }
 
 # parse CLI
-while getopts 'f:hu' option; do
+while getopts 'af:h' option; do
   case $option in
+    a) opt_a=1;;
     f) opt_f="$OPTARG";;
     h) opt_h=1;;
-    u) opt_u=1;;
   esac
 done
 set +e
@@ -205,50 +218,38 @@ fi
 : "${COMPOSE_FILE_B_OUT:=docker-compose.zone-b.yml}"
 : "${COMPOSE_FILE_COMMON_OUT:=docker-compose.common.yml}"
 
-set -a
-FUSION_BASE_VERSION=2.14.1.3
-FUSION_IMAGE_RELEASE=1
-FUSION_NN_PROXY_VERSION="4.0.0.3"
-FUSION_NN_PROXY_IMAGE_RELEASE=1
-FUSION_ONEUI_VERSION=2.14.1.0
-set +a
-
 # run everything below in a subshell to avoid leaking env vars
 (
-  SAVE_ENV=${COMMON_ENV}
+  # common environment setup
 
-  # update settings when not defined or force update specified
+  SAVE_ENV=${COMMON_ENV}
 
   ## load existing common variables
   [ -f "./${COMMON_ENV}" ] && load_file "./${COMMON_ENV}"
+
+  ## default values for variables to avoid prompts
+  : "${ZONE_A_NAME:=zone-a}"
+  : "${ZONE_B_NAME:=zone-b}"
 
   ## set variables for compose zone a
 
   validate_zone_type "$ZONE_A_TYPE"
   update_var ZONE_A_TYPE "Enter the first zone type" "Press enter for a list" validate_zone_type
-  update_var ZONE_A_NAME "Enter a name for the first zone" "$ZONE_A_TYPE" validate_zone_name
+  update_var ZONE_A_NAME "Enter the first zone name" "" validate_zone_name
 
   ## set variables for compose zone b
-  while :; do
-    [ -n "$ZONE_B_TYPE" ] && break
-    read -p "Configure a second zone? (Y/n) " REPLY
-    case ${REPLY:-y} in
-      Y|y) break ;;
-      N|n) ZONE_B_TYPE=NONE; break ;;
-    esac
-  done
 
-  update_var ZONE_B_TYPE "Enter the second zone type" "Press enter for a list" validate_zone_type
-  if [ "$ZONE_B_TYPE" != NONE ]; then
-    update_var ZONE_B_NAME "Enter a name for the second zone" "$ZONE_B_TYPE" validate_zone_name
-  fi
+  update_var ZONE_B_TYPE "Enter the second zone type (or NONE to skip)" "Press enter for a list" validate_zone_type
+  update_var ZONE_B_NAME "Enter a name for the second zone" "" validate_zone_name
 
   ## setup common file
   export ZONE_A_ENV ZONE_B_ENV ZONE_A_NAME ZONE_B_NAME
   # run the common conf
   . "./common.conf"
 
-  if [ ${LICENSE_FILE} ]; then
+  if [ -n "${LICENSE_FILE}" -a "${LICENSE_FILE}" != "NONE" ]; then
+    # force the "./" on the filename for relative paths
+    LICENSE_FILE="$(dirname ${LICENSE_FILE})/$(basename ${LICENSE_FILE})"
     export LICENSE_FILE_PATH="- ${LICENSE_FILE}:/etc/wandisco/fusion/server/license.key"
   fi
 
@@ -273,14 +274,14 @@ set +a
     # run the zone type config
     . "./zone-${ZONE_TYPE}.conf"
     # re-load variables
-    load_file "./${ZONE_ENV}"
+    [ -f "./${COMMON_ENV}" ] && load_file "./${COMMON_ENV}"
+    [ -f "${ZONE_ENV}" ] && load_file "./${ZONE_ENV}"
     envsubst <"docker-compose.zone-tmpl-${ZONE_TYPE}.yml" >"${COMPOSE_FILE_A_OUT}"
     set +a
   )
 
   ## run zone b setup (use a subshell to avoid leaking env vars)
-  (
-    [ $ZONE_B_TYPE = NONE ] && exit 0
+  ( if [ "$ZONE_B_TYPE" != "NONE" ]; then
     default_port_offset=500
     zone_letter=B
     set -a
@@ -300,10 +301,11 @@ set +a
     # run the zone type config
     . "./zone-${ZONE_TYPE}.conf"
     # re-load variables
-    load_file "./${ZONE_ENV}"
+    [ -f "./${COMMON_ENV}" ] && load_file "./${COMMON_ENV}"
+    [ -f "${ZONE_ENV}" ] && load_file "./${ZONE_ENV}"
     envsubst <"docker-compose.zone-tmpl-${ZONE_TYPE}.yml" >"${COMPOSE_FILE_B_OUT}"
     set +a
-  )
+  fi; )
 
   ## generate the common yml
   (
@@ -316,16 +318,19 @@ set +a
     set +a
   )
 
+  # set compose variables
+  COMPOSE_FILE="${COMPOSE_FILE_COMMON_OUT}:${COMPOSE_FILE_A_OUT}"
+  if [ "$ZONE_B_TYPE" != "NONE" ]; then
+    COMPOSE_FILE="${COMPOSE_FILE}:${COMPOSE_FILE_B_OUT}"
+  fi
+
+  # write the .env file
+  save_var COMPOSE_FILE "$COMPOSE_FILE" .env
+
+  # instructions for the end user
+  echo "The environment has now been configured. You can run:"
+  echo "  docker-compose up -d"
+  echo "to start the Fusion containers."
+  echo "Once Fusion starts browse to http://$(hostname):${ONEUI_SERVER_PORT} to access the UI."
 )
 
-# export common compose file variables
-export COMPOSE_FILE=$(generate_compose_var)
-
-if [ "$IS_SOURCED" = "0" ]; then
-  echo "# This script should be sourced with:"
-  echo "#   . $0"
-  echo "# Or you can manually export the following:"
-  echo "export COMPOSE_FILE=\"${COMPOSE_FILE}\""
-  echo "Run docker-compose up -d to start the Fusion containers"
-  echo "Once Fusion starts browse to http://HOST:8080 to access the UI"
-fi

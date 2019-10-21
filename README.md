@@ -50,7 +50,7 @@ docker-compose ps
 ```
 </br>
 
-> Note: The Docker managed volumes persist between container restarts. This ensures that any configuration and database changes are kept once you get up and running. You can remove them if you want to wipe out changes made _after_ initial launch, resetting the volumes. To remove them specify the `-v` flag to `docker-compose down`. 
+> Note: The Docker managed volumes persist between container restarts. This ensures that any configuration and database changes are kept once you get up and running. You can remove them if you want to wipe out changes made _after_ initial launch, resetting the volumes, by running `docker-compose down -v`.
 
 ### UI Access 
 Fusion UI is available at http://docker_host:8083 for First Zone and http://docker_host:8583 for Second Zone, with username and password admin/admin.
@@ -61,10 +61,16 @@ The evaluation license provides a fully functional solution with limited data tr
 
 To apply an updated license key, add the following to common.env:
 
+```text
 LICENSE_FILE=./path/to/license.key
+```
 
-Then run "./setup-env.sh -u"  and restart docker-compose
+Then run:
 
+```bash
+./setup-env.sh
+docker-compose up -d
+```
 
 ## License
 This repository is Apache 2.0 licensed. Please see `./LICENSE` for more information.

@@ -39,13 +39,14 @@ services:
       - INDUCTEE_REPLICATION_PORT=${ZONE_B_REPLICATION_PORT}
     command: /scripts/induction.sh
 
-# This service creates the One UI Server component to manage both zones. 
+# This service creates the One UI Server component to manage both zones.
 #
 # Note: this component can be run in either zone, so one is chosen arbitrarily
 
   # Fusion OneUI Server
   fusion-oneui-server:
     image: wandisco/fusion-oneui:${FUSION_ONEUI_VERSION}
+    restart: unless-stopped
     networks:
       - fusion
     ports:
@@ -62,4 +63,3 @@ volumes:
 
   # h2db database for UI Server
   fusion-oneui-h2db:
-

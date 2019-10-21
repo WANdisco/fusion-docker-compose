@@ -5,3 +5,5 @@ test.tpl
 *.env
 !docker-compose.common-tmpl.yml
 !docker-compose.zone-tmpl*.yml
+[._]*.sw[a-p]
+
