@@ -26,15 +26,17 @@
 version: "3.7"
 
 services:
-  debug-${ZONE_NAME}:
+  debug:
     image: ubuntu
-    command: ["sh", "-c", "sleep 1459103"]
+    command: ["tail", "-f", "/dev/null"]
     volumes:
-      - logging-server-${ZONE_NAME}:/debug/server
-      - logging-ui-server-${ZONE_NAME}:/debug/ui-server
-      - logging-ihc-${ZONE_NAME}:/debug/ihc-server
-      - logging-npx-${ZONE_NAME}:/debug/npx
-      - logging-livehive-${ZONE_NAME}:/debug/livehive
+      - logging-server-${ZONE_NAME}:/debug/server-${ZONE_NAME}
+      - logging-ui-server-${ZONE_NAME}:/debug/ui-server-${ZONE_NAME}
+      - logging-ihc-${ZONE_NAME}:/debug/ihc-server-${ZONE_NAME}
+      - logging-npx-${ZONE_NAME}:/debug/npx-${ZONE_NAME}
+      - logging-livehive-${ZONE_NAME}:/debug/livehive-${ZONE_NAME}
+    networks:
+      - fusion
 
   # LiveHive
   fusion-livehive-proxy-${ZONE_NAME}:

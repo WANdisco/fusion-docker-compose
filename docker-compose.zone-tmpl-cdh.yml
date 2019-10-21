@@ -27,6 +27,18 @@
 version: "3.7"
 
 services:
+  debug:
+    image: ubuntu
+    command: ["tail", "-f", "/dev/null"]
+    volumes:
+      - logging-server-${ZONE_NAME}:/debug/server-${ZONE_NAME}
+      - logging-ui-server-${ZONE_NAME}:/debug/ui-server-${ZONE_NAME}
+      - logging-ihc-${ZONE_NAME}:/debug/ihc-server-${ZONE_NAME}
+      - logging-npx-${ZONE_NAME}:/debug/npx-${ZONE_NAME}
+      - logging-livehive-${ZONE_NAME}:/debug/livehive-${ZONE_NAME}
+    networks:
+      - fusion
+
   # Fusion NameNode Proxy (NPX)
   fusion-nn-proxy-${ZONE_NAME}:
     image: wandisco/fusion-nn-proxy-cdh:${FUSION_NN_PROXY_VERSION}-${FUSION_NN_PROXY_IMAGE_RELEASE}
