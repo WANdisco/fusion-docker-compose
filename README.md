@@ -1,7 +1,7 @@
-# WANdisco Fusion Appliance
+# WANdisco Fusion 
 
 ## Overview
-This repository contains a tool to build a docker-compose config which deploys the WANdisco Fusion platform and provides a fully functional version with trial license to support WANdisco Live Migration between date stored in any of the following: 
+This repository contains a tool to build a docker-compose config which deploys the WANdisco Fusion platform and provides a fully functional version with trial license to support WANdisco Live Migration of files stored in any of the following: 
 
 - Azure - ADLS Gen 1, ADLS Gen 2, WASB, HDInsights 
 - AWS S3/EMRFS
