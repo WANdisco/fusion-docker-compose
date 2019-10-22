@@ -29,17 +29,18 @@ inside_container() {
 }
 if ! inside_container && ( \
        [ "$(uname -s)" != "Linux" ] \
+    || ! ./utils/uuid-gen.py >/dev/null 2>&1 \
     || [ ! -x "$(command -v envsubst)" ] \
     ); then
   # TODO: this image needs to be moved to WANdisco's repos
   # for now building on the fly
   # echo "Running setup-env inside a container" >&2
-  docker image inspect wandisco/setup-env >/dev/null 2>&1 \
-    || docker build -t wandisco/setup-env .
+  docker image inspect wandisco/setup-env:0.1 >/dev/null 2>&1 \
+    || docker build -t wandisco/setup-env:0.1 .
   docker run -it --rm \
     -u "$(id -u):$(id -g)" \
     -v "$(pwd):$(pwd)" -w "$(pwd)" \
-    wandisco/setup-env ./setup-env.sh "$@"
+    wandisco/setup-env:0.1 ./setup-env.sh "$@"
   exit $?
 fi
 
