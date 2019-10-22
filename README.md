@@ -1,7 +1,7 @@
 # WANdisco Fusion 
 
 ## Overview
-This repository contains a tool to build a docker-compose config which deploys the WANdisco Fusion platform and provides a fully functional version with trial license to support WANdisco Live Migration of files stored in any of the following: 
+This repository contains tooling to build a docker-compose config that deploys a fully functional version of WANdisco Fusion, supporting Live Migration or active-active replication of files stored in any of the following: 
 
 - Azure - ADLS Gen 1, ADLS Gen 2, WASB, HDInsights 
 - AWS S3/EMRFS
@@ -73,7 +73,7 @@ Fusion UI is available at http://docker_host:8083 for First Zone and http://dock
 
 
 ### Updating the License Key
-The evaluation license provides a fully functional solution with limited data transfer capacity. THe license can be extended by contacting WANdisco sales - sales@wandisco.com.
+The evaluation license provided with the solution is fully functional but with a limited data transfer capacity. THe license can be extended by contacting WANdisco sales - sales@wandisco.com.
 
 To apply an updated license key, add the following to common.env:
 
