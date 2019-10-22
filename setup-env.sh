@@ -264,7 +264,9 @@ fi
   ## set variables for compose zone b
 
   update_var ZONE_B_TYPE "Enter the second zone type (or NONE to skip)" "" validate_zone_type
-  update_var ZONE_B_NAME "Enter a name for the second zone" "${ZONE_B_TYPE}" validate_zone_name_uniq
+  if [ "$ZONE_B_TYPE" != NONE ]; then
+    update_var ZONE_B_NAME "Enter a name for the second zone" "${ZONE_B_TYPE}" validate_zone_name_uniq
+  fi
 
   ## setup common file
   export ZONE_A_ENV ZONE_B_ENV ZONE_A_NAME ZONE_B_NAME

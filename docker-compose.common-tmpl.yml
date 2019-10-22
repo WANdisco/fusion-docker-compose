@@ -21,6 +21,7 @@ services:
   debug:
     image: ubuntu
     command: ["tail", "-f", "/dev/null"]
+    working_dir: "/debug"
     volumes:
       - logging-oneui-server:/debug/oneui-server
     networks:
