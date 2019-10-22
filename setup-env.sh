@@ -31,13 +31,15 @@ if ! inside_container && ( \
        [ "$(uname -s)" != "Linux" ] \
     || ! ./utils/uuid-gen.py >/dev/null 2>&1 \
     || [ ! -x "$(command -v envsubst)" ] \
+    || [ ! -x "$(command -v nslookup)" ] \
     ); then
   # TODO: this image needs to be moved to WANdisco's repos
   # for now building on the fly
   # echo "Running setup-env inside a container" >&2
+  echo "Warning: dependencies missing, running this command inside of a docker container" >&2
   docker image inspect wandisco/setup-env:0.1 >/dev/null 2>&1 \
     || docker build -t wandisco/setup-env:0.1 .
-  docker run -it --rm \
+  docker run -it --rm --net host \
     -u "$(id -u):$(id -g)" \
     -v "$(pwd):$(pwd)" -w "$(pwd)" \
     wandisco/setup-env:0.1 ./setup-env.sh "$@"
@@ -123,6 +125,25 @@ update_var() {
   return 0
 }
 
+validate_file_path() {
+  value="$1"
+  if [ -z "$value" ] || [ "$value" != "TRIAL" -a ! -f "$value" ]; then
+    echo "Error: File path must exist"
+    return 1
+  fi
+  return 0
+}
+
+validate_hostname() {
+  hostname=$1
+
+  if [ -z "$hostname" ] || ! nslookup "$hostname" >/dev/null 2>&1; then
+    echo "Error: hostname did not resolve in DNS"
+    return 1
+  fi
+  return 0
+}
+
 validate_not_empty() {
   value="$1"
   if [ -z "$value" ]; then
@@ -158,19 +179,21 @@ validate_number() {
   esac
 }
 
-validate_file_path() {
-  value="$1"
-  if [ -z "$value" ] || [ "$value" != "NONE" -a ! -f "$value" ]; then
-    echo "Error: File path must exist"
+validate_zone_name() {
+  zone_name=$1
+  if [ -z "$zone_name" ] || echo "$zone_name" | egrep -q '[^a-z0-9\-]'; then
+    echo "Zone name must only contain lower case letters, numbers, or -, no spaces or other characters"
     return 1
   fi
   return 0
 }
 
-validate_zone_name() {
+validate_zone_name_uniq() {
+  validate_zone_name "$@" || return 1
   zone_name=$1
-  if [ -z "$zone_name" ] || echo "$zone_name" | egrep -q '[^a-z0-9\-]'; then
-    echo "Zone name must only contain lower case letters, numbers, or -, no spaces or other characters"
+  # for now, with only two zones, this check is simple
+  if [ -n "$ZONE_A_NAME" -a -n "$zone_name" -a "$ZONE_A_NAME" = "$zone_name" ] ; then
+    echo "Zone name must be unique"
     return 1
   fi
   return 0
@@ -229,26 +252,26 @@ fi
   [ -f "./${COMMON_ENV}" ] && load_file "./${COMMON_ENV}"
 
   ## default values for variables to avoid prompts
-  : "${ZONE_A_NAME:=zone-a}"
-  : "${ZONE_B_NAME:=zone-b}"
+  #: "${ZONE_A_NAME:=zone-a}"
+  #: "${ZONE_B_NAME:=zone-b}"
 
   ## set variables for compose zone a
 
   validate_zone_type "$ZONE_A_TYPE"
-  update_var ZONE_A_TYPE "Enter the first zone type" "Press enter for a list" validate_zone_type
-  update_var ZONE_A_NAME "Enter the first zone name" "" validate_zone_name
+  update_var ZONE_A_TYPE "Enter the first zone type" "" validate_zone_type
+  update_var ZONE_A_NAME "Enter the first zone name" "${ZONE_A_TYPE}" validate_zone_name
 
   ## set variables for compose zone b
 
-  update_var ZONE_B_TYPE "Enter the second zone type (or NONE to skip)" "Press enter for a list" validate_zone_type
-  update_var ZONE_B_NAME "Enter a name for the second zone" "" validate_zone_name
+  update_var ZONE_B_TYPE "Enter the second zone type (or NONE to skip)" "" validate_zone_type
+  update_var ZONE_B_NAME "Enter a name for the second zone" "${ZONE_B_TYPE}" validate_zone_name_uniq
 
   ## setup common file
   export ZONE_A_ENV ZONE_B_ENV ZONE_A_NAME ZONE_B_NAME
   # run the common conf
   . "./common.conf"
 
-  if [ -n "${LICENSE_FILE}" -a "${LICENSE_FILE}" != "NONE" ]; then
+  if [ -n "${LICENSE_FILE}" -a "${LICENSE_FILE}" != "TRIAL" ]; then
     # force the "./" on the filename for relative paths
     LICENSE_FILE="$(dirname ${LICENSE_FILE})/$(basename ${LICENSE_FILE})"
     export LICENSE_FILE_PATH="- ${LICENSE_FILE}:/etc/wandisco/fusion/server/license.key"
@@ -329,9 +352,11 @@ fi
   save_var COMPOSE_FILE "$COMPOSE_FILE" .env
 
   # instructions for the end user
-  echo "The environment has now been configured. You can run:"
+  echo "The environment has now been configured. To reconfigure all settings, you amy run:"
+  echo "  ./setup-env.sh -a"
+  echo "To start the Fusion containers, you can now run:"
   echo "  docker-compose up -d"
-  echo "to start the Fusion containers."
-  echo "Once Fusion starts browse to http://$(hostname):${ONEUI_SERVER_PORT} to access the UI."
+  echo "Once Fusion starts the UI is available on:"
+  echo "  http://${DOCKER_HOSTNAME}:${ONEUI_SERVER_PORT}"
 )
 
