@@ -1,4 +1,4 @@
-# WANdisco Fusion 
+# WANdisco Fusion Appliance
 
 ## Overview
 This repository contains a tool to build a docker-compose config which deploys the WANdisco Fusion platform and provides a fully functional version with trial license to support WANdisco Live Migration between date stored in any of the following: 
@@ -8,14 +8,14 @@ This repository contains a tool to build a docker-compose config which deploys t
 - Google Cloud*
 - Hadoop - CDH 
 - Hadoop - HDP
-- Hadoop - Apache (Unmanaged)
-- Alibaba OSS / EMR
+- Hadoop - Apache (Unmanaged)*
+- Alibaba OSS / EMR*
 - MAPR*
 - Local File System*
 
 *Available in container images but may not yet be selectable in setup script. 
 
-The stack can be used for standalone operation a across two storage zones or as a single zone to connect with a remote deployment.  
+The stack can be used for standalone operation across two storage zones on a single host, or as a single zone to connect with a remote Fusion deployment.  
 
 
 
