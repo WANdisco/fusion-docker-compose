@@ -1,20 +1,23 @@
 # WANdisco Fusion 
 
 ## Overview
-This repository contains a tool to build a docker-compose config which deploys the WANdisco Fusion platform and provides a fully functional version with trial license to support WANdisco live migration between date stored in any of the following: 
+This repository contains a tool to build a docker-compose config which deploys the WANdisco Fusion platform and provides a fully functional version with trial license to support WANdisco Live Migration between date stored in any of the following: 
 
-Azure - ADLS Gen 1, ADLS Gen 2, WASB, HDInsights 
-AWS S3/EMRFS
-Google Cloud*
-Hadoop - CDH 
-Hadoop - HDP
-Hadoop - Apache (Unmanaged)
-Alibaba OSS / EMR
-MAPR*
-Local File System*
+- Azure - ADLS Gen 1, ADLS Gen 2, WASB, HDInsights 
+- AWS S3/EMRFS
+- Google Cloud*
+- Hadoop - CDH 
+- Hadoop - HDP
+- Hadoop - Apache (Unmanaged)
+- Alibaba OSS / EMR
+- MAPR*
+- Local File System*
 *Available in container images but may not yet be selectable in setup script. 
 
 The stack can be used for standalone operation a across two storage zones or as a single zone to connect with a remote deployment.  
+
+
+
 
 The ./setup-env.sh script lets you select the desired platform and configure storage credentials before running docker-compose up -d. 
 
