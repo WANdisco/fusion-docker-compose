@@ -73,7 +73,7 @@ Fusion UI is available at http://docker_host:8083 for First Zone and http://dock
 
 
 ### Updating the License Key
-The evaluation license provided with the solution is fully functional but with a limited data transfer capacity. THe license can be extended by contacting WANdisco sales - sales@wandisco.com.
+The evaluation license provided with the solution is fully functional but with a limited data transfer capacity. The license can be extended by contacting WANdisco sales - sales@wandisco.com.
 
 To apply an updated license key, add the following to common.env:
 
