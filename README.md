@@ -12,6 +12,7 @@ This repository contains a tool to build a docker-compose config which deploys t
 - Alibaba OSS / EMR
 - MAPR*
 - Local File System*
+
 *Available in container images but may not yet be selectable in setup script. 
 
 The stack can be used for standalone operation a across two storage zones or as a single zone to connect with a remote deployment.  
