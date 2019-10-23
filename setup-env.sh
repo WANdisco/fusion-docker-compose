@@ -355,11 +355,11 @@ fi
   save_var COMPOSE_FILE "$COMPOSE_FILE" .env
 
   # instructions for the end user
-  echo "The environment has now been configured. To reconfigure all settings, you amy run:"
+  echo "The docker-compose environment is configured and ready to start. If you need to change these settings run:"
   echo "  ./setup-env.sh -a"
-  echo "To start the Fusion containers, you can now run:"
+  echo "To start Fusion run the command:"
   echo "  docker-compose up -d"
-  echo "Once Fusion starts the UI is available on:"
+  echo "Once Fusion starts the UI will be available on:"
   echo "  http://${DOCKER_HOSTNAME}:${ONEUI_SERVER_PORT}"
 )
 
