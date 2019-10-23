@@ -35,6 +35,11 @@ services:
     networks:
       - fusion
 
+  # add a volume to OneUI
+  fusion-oneui-server:
+    volumes:
+      - fusion-${ZONE_NAME}-etc-wandisco:/etc/wandisco/fusion/server/${ZONE_NAME}/
+
   # Fusion UI Server
   fusion-ui-server-${ZONE_NAME}:
     image: wandisco/fusion-ui-server-hcfs-emr-${EMR_VERSION}:${FUSION_BASE_VERSION}-${FUSION_IMAGE_RELEASE}

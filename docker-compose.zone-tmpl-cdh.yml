@@ -37,6 +37,11 @@ services:
     networks:
       - fusion
 
+  # add a volume to OneUI
+  fusion-oneui-server:
+    volumes:
+      - fusion-${ZONE_NAME}-etc-wandisco:/etc/wandisco/fusion/server/${ZONE_NAME}/
+
   # Fusion NameNode Proxy (NPX)
   fusion-nn-proxy-${ZONE_NAME}:
     image: wandisco/fusion-nn-proxy-cdh:${FUSION_NN_PROXY_VERSION}-${FUSION_NN_PROXY_IMAGE_RELEASE}

@@ -340,6 +340,7 @@ fi
     [ -f "${ZONE_B_ENV}" ] && load_file "./${ZONE_B_ENV}"
     [ -f "${ZONE_A_ENV}" ] && load_file "./${ZONE_A_ENV}"
     [ -f "./${COMMON_ENV}" ] && load_file "./${COMMON_ENV}"
+    export COMMON_ENV
     envsubst <"docker-compose.common-tmpl.yml" >"${COMPOSE_FILE_COMMON_OUT}"
     set +a
   )
