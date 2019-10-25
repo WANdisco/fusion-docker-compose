@@ -31,7 +31,7 @@ if ! inside_container && ( \
        [ "$(uname -s)" != "Linux" ] \
     || ! ./utils/uuid-gen.py >/dev/null 2>&1 \
     || [ ! -x "$(command -v envsubst)" ] \
-    || [ ! -x "$(command -v nslookup)" ] \
+    || [ ! -x "$(command -v getent)" ] \
     ); then
   # TODO: this image needs to be moved to WANdisco's repos
   # for now building on the fly
@@ -137,7 +137,7 @@ validate_file_path() {
 validate_hostname() {
   hostname=$1
 
-  if [ -z "$hostname" ] || ! nslookup "$hostname" >/dev/null 2>&1; then
+  if [ -z "$hostname" ] || ! getent hosts "$hostname" >/dev/null 2>&1; then
     echo "Error: hostname did not resolve in DNS"
     return 1
   fi

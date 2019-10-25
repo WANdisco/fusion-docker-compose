@@ -41,6 +41,8 @@ services:
   fusion-nn-proxy-${ZONE_NAME}:
     image: wandisco/fusion-nn-proxy-hdp:${FUSION_NN_PROXY_VERSION}-${FUSION_NN_PROXY_IMAGE_RELEASE}
     restart: unless-stopped
+    depends_on:
+      - fusion-server-${ZONE_NAME}
     networks:
       - fusion
     env_file:
