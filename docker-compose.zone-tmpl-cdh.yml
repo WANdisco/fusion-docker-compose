@@ -44,7 +44,7 @@ services:
 
   # Fusion NameNode Proxy (NPX)
   fusion-nn-proxy-${ZONE_NAME}:
-    image: wandisco/fusion-nn-proxy-cdh:${FUSION_NN_PROXY_VERSION}-${FUSION_NN_PROXY_IMAGE_RELEASE}
+    image: wandisco/fusion-nn-proxy-cdh-${CDH_VERSION}:${FUSION_NN_PROXY_VERSION}-${FUSION_NN_PROXY_IMAGE_RELEASE}
     restart: unless-stopped
     networks:
       - fusion
@@ -57,7 +57,7 @@ services:
 
   # Fusion UI Server
   fusion-ui-server-${ZONE_NAME}:
-    image: wandisco/fusion-ui-server-cdh:${FUSION_BASE_VERSION}-${FUSION_IMAGE_RELEASE}
+    image: wandisco/fusion-ui-server-cdh-${CDH_VERSION}:${FUSION_BASE_VERSION}-${FUSION_IMAGE_RELEASE}
     restart: unless-stopped
     depends_on:
       - fusion-server-${ZONE_NAME}
@@ -78,7 +78,7 @@ services:
 
   # Fusion IHC Server
   fusion-ihc-server-${ZONE_NAME}:
-    image: wandisco/fusion-ihc-server-cdh:${FUSION_BASE_VERSION}-${FUSION_IMAGE_RELEASE}
+    image: wandisco/fusion-ihc-server-cdh-${CDH_VERSION}:${FUSION_BASE_VERSION}-${FUSION_IMAGE_RELEASE}
     restart: unless-stopped
     depends_on:
       - fusion-server-${ZONE_NAME}
@@ -98,7 +98,7 @@ services:
 
   # Fusion Server
   fusion-server-${ZONE_NAME}:
-    image: wandisco/fusion-server-cdh:${FUSION_BASE_VERSION}-${FUSION_IMAGE_RELEASE}
+    image: wandisco/fusion-server-cdh-${CDH_VERSION}:${FUSION_BASE_VERSION}-${FUSION_IMAGE_RELEASE}
     restart: unless-stopped
     networks:
       - fusion

@@ -41,7 +41,7 @@ services:
 
   # Fusion UI Server
   fusion-ui-server-${ZONE_NAME}:
-    image: wandisco/fusion-ui-server-hdi:${FUSION_BASE_VERSION}-${FUSION_IMAGE_RELEASE}
+    image: wandisco/fusion-ui-server-hdi-${HDI_VERSION}:${FUSION_BASE_VERSION}-${FUSION_IMAGE_RELEASE}
     restart: unless-stopped
     depends_on:
       - fusion-server-${ZONE_NAME}
@@ -60,7 +60,7 @@ services:
 
   # Fusion IHC Server
   fusion-ihc-server-${ZONE_NAME}:
-    image: wandisco/fusion-ihc-server-hdi:${FUSION_BASE_VERSION}-${FUSION_IMAGE_RELEASE}
+    image: wandisco/fusion-ihc-server-hdi-${HDI_VERSION}:${FUSION_BASE_VERSION}-${FUSION_IMAGE_RELEASE}
     restart: unless-stopped
     depends_on:
       - fusion-server-${ZONE_NAME}
@@ -80,7 +80,7 @@ services:
 
   # Fusion Server
   fusion-server-${ZONE_NAME}:
-    image: wandisco/fusion-server-hdi:${FUSION_BASE_VERSION}-${FUSION_IMAGE_RELEASE}
+    image: wandisco/fusion-server-hdi-${HDI_VERSION}:${FUSION_BASE_VERSION}-${FUSION_IMAGE_RELEASE}
     restart: unless-stopped
     networks:
       - fusion
