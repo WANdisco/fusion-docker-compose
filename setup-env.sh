@@ -85,7 +85,7 @@ save_var() {
   if [ -n "${cur_val}" ]; then
     # if already set, modify
     sed_safe_val="$(echo "${new_val}" | sed -e 's/[\/&]/\\&/g')"
-    sed -i "s/^${var}=.*\$/${var}=${sed_safe_val}/" "${filename}"
+    sed -i '' "s/^${var}=.*\$/${var}=${sed_safe_val}/" "${filename}"
   else
     # else append a value to the file
     echo "${var}=${new_val}" >> "${filename}"
