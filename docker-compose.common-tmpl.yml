@@ -59,8 +59,8 @@ services:
     volumes:
       - logging-oneui-server:/var/log/fusion/
       - fusion-oneui-h2db:/h2db
-      - fusion-${ZONE_A_NAME}-restart:/etc/wandisco/fusion/server/zone1
-      - fusion-${ZONE_B_NAME}-restart:/etc/wandisco/fusion/server/zone2
+      - fusion-${ZONE_A_NAME}-restart:/etc/wandisco/fusion/server/${ZONE_A_NAME}
+      - fusion-${ZONE_B_NAME}-restart:/etc/wandisco/fusion/server/${ZONE_B_NAME}
 
 volumes:
   # Named logging volume
