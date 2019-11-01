@@ -74,6 +74,8 @@ save_var() {
   new_val="$2"
   filename="$3"
 
+  eval "$var=\"$new_val\""
+
   # check for current version
   cur_val=$([ -f "${filename}" ] && grep "^${var}=" "${filename}" | cut -f2- -d= )
 
