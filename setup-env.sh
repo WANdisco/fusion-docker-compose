@@ -49,6 +49,7 @@ fi
 opt_f="compose.env"
 opt_h=0
 opt_a=0
+opt_s=0
 
 # functions
 usage() {
@@ -56,6 +57,7 @@ usage() {
   echo " -a: all settings will be prompted"
   echo " -f file: main env file to use (default: ${opt_f})"
   echo " -h: this help message"
+  echo " -s: skip validation of inputs"
   [ "$opt_h" = "1" ] && exit 0 || exit 1
 }
 
@@ -73,6 +75,8 @@ save_var() {
   var="$1"
   new_val="$2"
   filename="$3"
+
+  eval "$var=\"$new_val\""
 
   # check for current version
   cur_val=$([ -f "${filename}" ] && grep "^${var}=" "${filename}" | cut -f2- -d= )
@@ -114,7 +118,7 @@ update_var() {
     eval "${var_name}=\"${default}\""
   fi
   # validate the input, rerun the prompt on validation failure
-  while [ -n "${validate}" ] && ! eval \"${validate}\" \"${var_val}\"; do
+  while [ -n "${validate}" ] && [ "$opt_s" != "1" ] && ! eval \"${validate}\" \"${var_val}\"; do
     read -p "${var_msg}: " ${var_name}
     var_val=$(eval echo -n \"\$$var_name\")
   done
@@ -137,11 +141,17 @@ validate_file_path() {
 validate_hostname() {
   hostname="$1"
 
-  if [ -z "$hostname" ] || ! getent hosts "$hostname" >/dev/null 2>&1; then
+  if [ -n "$hostname" ] && getent hosts "$hostname" >/dev/null 2>&1; then
+    # resolving DNS
+    return 0
+  elif [ -n "$hostname" ] && expr "$hostname" : '[0-9][0-9]*\.[0-9][0-9]*\.[0-9][0-9]*\.[0-9][0-9]*$' >/dev/null 2>&1; then
+    # or accept anything that looks like an IP address
+    # this is a very weak test, it does not verify the parts are each below 255
+    return 0
+  else
     echo "Error: hostname did not resolve in DNS"
     return 1
   fi
-  return 0
 }
 
 validate_not_empty() {
@@ -224,11 +234,12 @@ EOZONE
 }
 
 # parse CLI
-while getopts 'af:h' option; do
+while getopts 'af:hs' option; do
   case $option in
     a) opt_a=1;;
     f) opt_f="$OPTARG";;
     h) opt_h=1;;
+    s) opt_s=1;;
   esac
 done
 set +e
