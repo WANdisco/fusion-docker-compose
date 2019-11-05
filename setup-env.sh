@@ -97,10 +97,10 @@ save_var() {
 }
 
 update_var() {
-  var_name=$1
-  var_msg=$2
-  default=$3
-  validate=$4
+  var_name="$1"
+  var_msg="$2"
+  default="$3"
+  validate="$4"
   # get the value for $var_name
   var_val=$(eval echo -n \"\$$var_name\")
   # make the existing value the default
@@ -190,7 +190,7 @@ validate_number() {
 }
 
 validate_zone_name() {
-  zone_name=$1
+  zone_name="$1"
   if [ -z "$zone_name" ] || echo "$zone_name" | egrep -q '[^a-z0-9\-]'; then
     echo "Zone name must only contain lower case letters, numbers, or -, no spaces or other characters"
     return 1
@@ -200,7 +200,7 @@ validate_zone_name() {
 
 validate_zone_name_uniq() {
   validate_zone_name "$@" || return 1
-  zone_name=$1
+  zone_name="$1"
   # for now, with only two zones, this check is simple
   if [ -n "$ZONE_A_NAME" -a -n "$zone_name" -a "$ZONE_A_NAME" = "$zone_name" ] ; then
     echo "Zone name must be unique"
@@ -210,20 +210,27 @@ validate_zone_name_uniq() {
 }
 
 validate_zone_type() {
-  zone_type=$1
+  zone_type="$1"
 
-  if [ "$zone_type" = "NONE" -o -f "zone-${zone_type}.conf" ]; then
-    return 0
-  else
-    echo "Please choose from one of the following zone types:"
-    echo
-    for zone in zone-*.conf; do
-      zone_type=${zone#zone-}
-      echo "  ${zone_type%.conf}"
-    done
-    echo
-    return 1
-  fi
+  case "$zone_type" in
+    NONE)            return 0;; # TODO: verify at least zone A is defined
+    adls1|adls2)     return 0;;
+    s3|hcfs-emr)     return 0;;
+    cdh|hdp)         return 0;;
+    alibaba-emr)     return 0;;
+  esac
+  # for anything not matched by the above case, validation failed
+  echo "Please choose from one of the following zone types:"
+  cat <<EOZONE
+adls1:       Azure Data Lake Service Gen 1
+adls2:       Azure Data Lake Service Gen 2
+s3:          AWS S3 Unmanaged
+hcfs-emr:    AWS HCFS EMR
+cdh:         Cloudera Hadoop
+hdp:         Hadoop
+alibaba-emr: Alibaba EMR
+EOZONE
+  return 1
 }
 
 # parse CLI
