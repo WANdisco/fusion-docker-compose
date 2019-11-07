@@ -54,6 +54,7 @@ services:
       - fusion-${ZONE_NAME}-etc-wandisco:/etc/wandisco
       - fusion-${ZONE_NAME}-etc-hadoop:/etc/hadoop
       - ./config_files/krb5.conf:/etc/krb5.conf
+      - ./keytabs:/etc/security/keytabs
 
   # Fusion UI Server
   fusion-ui-server-${ZONE_NAME}:
@@ -77,6 +78,7 @@ services:
       - fusion-${ZONE_NAME}-opt-wandisco-fusion-ui-server-properties:/opt/wandisco/fusion-ui-server/properties
       - fusion-${ZONE_NAME}-etc-hadoop:/etc/hadoop
       - ./config_files/krb5.conf:/etc/krb5.conf
+      - ./keytabs:/etc/security/keytabs
       ${LICENSE_FILE_PATH}
 
   # Fusion IHC Server
@@ -99,6 +101,7 @@ services:
       - fusion-${ZONE_NAME}-etc-wandisco:/etc/wandisco
       - fusion-${ZONE_NAME}-etc-hadoop:/etc/hadoop
       - ./config_files/krb5.conf:/etc/krb5.conf
+      - ./keytabs:/etc/security/keytabs
       - fusion-${ZONE_NAME}-restart:/restart
       ${LICENSE_FILE_PATH}
 
@@ -125,6 +128,7 @@ services:
       - fusion-${ZONE_NAME}-etc-wandisco:/etc/wandisco
       - fusion-${ZONE_NAME}-etc-hadoop:/etc/hadoop
       - ./config_files/krb5.conf:/etc/krb5.conf
+      - ./keytabs:/etc/security/keytabs
       - fusion-${ZONE_NAME}-restart:/restart
       - fusion-${ZONE_NAME}-opt-wandisco-fusion-ui-server-properties:/opt/wandisco/fusion-ui-server/properties
       ${LICENSE_FILE_PATH}
