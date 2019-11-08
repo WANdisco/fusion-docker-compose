@@ -53,7 +53,7 @@ services:
     ports:
       - ${ONEUI_SERVER_PORT}:8080
     environment:
-      - FUSION_SERVER_HOSTNAMES=http://fusion-server-${ZONE_A_NAME}:${ZONE_A_SERVER_PORT},http://fusion-server-${ZONE_B_NAME}:${ZONE_B_SERVER_PORT}
+      - FUSION_SERVER_HOSTNAMES=${FUSION_SERVER_HOSTNAMES}
     env_file:
       - "${COMMON_ENV}"
     volumes:
