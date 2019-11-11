@@ -1,5 +1,0 @@
-This directory can be used to store Kerberos keytabs that will be mapped to the following directory on HDP or CDH containers:
-
-/etc/security/keytabs
-
-Copy your keytab(s) into this directory and run a "docker-compose restart" to make the keytab(s) available in the containers.
