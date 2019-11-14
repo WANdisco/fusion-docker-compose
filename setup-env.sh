@@ -385,6 +385,12 @@ fi
     set +a
   fi; )
 
+  FUSION_SERVER_HOSTNAMES="http://fusion-server-${ZONE_A_NAME}:${ZONE_A_SERVER_PORT}"
+  if [ "$ZONE_B_TYPE" != "NONE" ]; then
+    FUSION_SERVER_HOSTNAMES="${FUSION_SERVER_HOSTNAMES},http://fusion-server-${ZONE_B_NAME}:${ZONE_B_SERVER_PORT}"
+  fi
+  save_var FUSION_SERVER_HOSTNAMES "$FUSION_SERVER_HOSTNAMES" "${COMMON_ENV}"
+
   ## generate the common yml
   set -a
   # load env files in order of increasing priority

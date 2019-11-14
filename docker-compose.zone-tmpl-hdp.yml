@@ -39,7 +39,7 @@ services:
 
   # Fusion NameNode Proxy (NPX)
   fusion-nn-proxy-${ZONE_NAME}:
-    image: wandisco/fusion-nn-proxy-hdp-${HDP_VERSION}:${FUSION_NN_PROXY_VERSION}-${FUSION_NN_PROXY_IMAGE_RELEASE}
+    image: wandisco/fusion-nn-proxy-${PLATFORM}:${FUSION_NN_PROXY_VERSION}-${FUSION_NN_PROXY_IMAGE_RELEASE}
     restart: unless-stopped
     depends_on:
       - fusion-server-${ZONE_NAME}
@@ -56,7 +56,7 @@ services:
 
   # Fusion UI Server
   fusion-ui-server-${ZONE_NAME}:
-    image: wandisco/fusion-ui-server-hdp-${HDP_VERSION}:${FUSION_BASE_VERSION}-${FUSION_IMAGE_RELEASE}
+    image: wandisco/fusion-ui-server-${PLATFORM}:${FUSION_BASE_VERSION}-${FUSION_IMAGE_RELEASE}
     restart: unless-stopped
     depends_on:
       - fusion-server-${ZONE_NAME}
@@ -78,7 +78,7 @@ services:
 
   # Fusion IHC Server
   fusion-ihc-server-${ZONE_NAME}:
-    image: wandisco/fusion-ihc-server-hdp-${HDP_VERSION}:${FUSION_BASE_VERSION}-${FUSION_IMAGE_RELEASE}
+    image: wandisco/fusion-ihc-server-${PLATFORM}:${FUSION_BASE_VERSION}-${FUSION_IMAGE_RELEASE}
     restart: unless-stopped
     depends_on:
       - fusion-server-${ZONE_NAME}
@@ -99,7 +99,7 @@ services:
 
   # Fusion Server
   fusion-server-${ZONE_NAME}:
-    image: wandisco/fusion-server-hdp-${HDP_VERSION}:${FUSION_BASE_VERSION}-${FUSION_IMAGE_RELEASE}
+    image: wandisco/fusion-server-${PLATFORM}:${FUSION_BASE_VERSION}-${FUSION_IMAGE_RELEASE}
     restart: unless-stopped
     networks:
       - fusion

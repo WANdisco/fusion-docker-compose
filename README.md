@@ -1,7 +1,8 @@
 # WANdisco Fusion 
 
 ## Overview
-This repository contains tooling to build a docker-compose config that deploys a fully functional version of WANdisco Fusion, supporting Live Migration or active-active replication of files stored in any of the following: 
+
+This repository contains a tool (setup-env.sh) which build a docker-compose configuration that can be used to deploy a fully functional version of WANdisco Fusion with a 30 day evaluation license. Fusion supports Live Migration or active-active replication of files stored in any of the following: 
 
 - Azure - ADLS Gen 1, ADLS Gen 2, WASB, HDInsights 
 - AWS S3/EMRFS
@@ -9,18 +10,15 @@ This repository contains tooling to build a docker-compose config that deploys a
 - Hadoop - CDH 
 - Hadoop - HDP
 - Hadoop - Apache (Unmanaged)*
-- Alibaba OSS / EMR*
+- Alibaba OSS / EMR
 - MAPR*
 - Local File System*
 
-*Available in container images but may not yet be selectable in setup script. 
+*Available in container images but may not yet be configurable via the setup script. 
 
 The stack can be used for standalone operation across two storage zones on a single host, or as a single zone to connect with a remote Fusion deployment.  
 
-
-
-
-The ./setup-env.sh script lets you select the desired platform and configure storage credentials before running docker-compose up -d. 
+The ./setup-env.sh script lets you select the desired platform and configure storage before staring Fusion by running docker-compose up -d. 
 
 ## Prerequisites 
 1. [Docker](https://docs.docker.com/install/overview/) and [Docker Compose](https://docs.docker.com/compose/install/) installed on a suitable host
@@ -69,24 +67,7 @@ docker-compose ps
 > Note: The Docker managed volumes persist between container restarts. This ensures that any configuration and database changes are kept once you get up and running. You can remove them if you want to wipe out changes made _after_ initial launch, resetting the volumes, by running `docker-compose down -v`.
 
 ### UI Access 
-Fusion UI is available at http://docker_host:8083 for First Zone and http://docker_host:8583 for Second Zone, with username and password admin/admin.
-
-
-### Updating the License Key
-The evaluation license provided with the solution is fully functional but with a limited data transfer capacity. The license can be extended by contacting WANdisco sales - sales@wandisco.com.
-
-To apply an updated license key, add the following to common.env:
-
-```text
-LICENSE_FILE=./path/to/license.key
-```
-
-Then run:
-
-```bash
-./setup-env.sh
-docker-compose up -d
-```
+Fusion UI is available at http://docker_host:8081 
 
 ## License
 This repository is Apache 2.0 licensed. Please see `./LICENSE` for more information.
