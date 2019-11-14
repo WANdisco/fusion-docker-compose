@@ -23,8 +23,9 @@ services:
       - logging-livehive-${ZONE_NAME}:/debug/livehive-${ZONE_NAME}
 
   fusion-livehive-proxy-${ZONE_NAME}:
-    image: wandisco/fusion-livehive-proxy-${INDUCTOR_TYPE}:${FUSION_LIVEHIVE_VERSION}
-    #-${FUSION_LIVEHIVE_PROXY_IMAGE_RELEASE}
+    image: wandisco/fusion-livehive-proxy-${PLATFORM}:${FUSION_LIVEHIVE_VERSION}
+    depends_on:
+      - fusion-server-${ZONE_NAME}
     networks:
       - fusion
     env_file:
@@ -33,6 +34,9 @@ services:
       - ${FUSION_LIVEHIVE_PROXY_PORT}:${FUSION_LIVEHIVE_PROXY_PORT}
     volumes:
       - logging-livehive-${ZONE_NAME}:/var/log/fusion
+      - fusion-${ZONE_NAME}-etc-wandisco:/etc/wandisco
+      - fusion-${ZONE_NAME}-etc-hadoop:/etc/hadoop
+
 
 networks:
   # One Docker network is shared between both zones
