@@ -97,10 +97,27 @@ services:
       - fusion-${ZONE_NAME}-restart:/restart
       ${LICENSE_FILE_PATH}
 
+  # sshd
+  sshd-${ZONE_NAME}:
+    image: wandisco/sshd:${SSHD_OS}-${SSHD_VERSION}
+    restart: unless-stopped
+    networks:
+      - fusion
+    ports:
+      - "${SSHD_PORT}:22"
+    env_file:
+      - "${ZONE_ENV}"
+    volumes:
+      - fusion-${ZONE_NAME}-etc-ssh:/etc/ssh
+      - fusion-${ZONE_NAME}-root-ssh:/root/.ssh
+      - fusion-${ZONE_NAME}-sshd-export:/etc/sshd_export
+
   # Fusion Server
   fusion-server-${ZONE_NAME}:
     image: wandisco/fusion-server-${PLATFORM}:${FUSION_BASE_VERSION}-${FUSION_IMAGE_RELEASE}
     restart: unless-stopped
+    depends_on:
+      - sshd-${ZONE_NAME}
     networks:
       - fusion
     ports:
@@ -116,6 +133,7 @@ services:
       - fusion-${ZONE_NAME}-opt-wandisco-fusion-server-dcone:/opt/wandisco/fusion/server/dcone
       - fusion-${ZONE_NAME}-etc-wandisco:/etc/wandisco
       - fusion-${ZONE_NAME}-etc-hadoop:/etc/hadoop
+      - fusion-${ZONE_NAME}-sshd-export:/etc/sshd_export
       - fusion-${ZONE_NAME}-restart:/restart
       - fusion-${ZONE_NAME}-opt-wandisco-fusion-ui-server-properties:/opt/wandisco/fusion-ui-server/properties
       ${LICENSE_FILE_PATH}
@@ -136,6 +154,11 @@ volumes:
 
   # dcone volume to persist database changes across restarts
   fusion-${ZONE_NAME}-opt-wandisco-fusion-server-dcone:
+
+  # volumes for sshd
+  fusion-${ZONE_NAME}-etc-ssh:
+  fusion-${ZONE_NAME}-root-ssh:
+  fusion-${ZONE_NAME}-sshd-export:
 
   # volumes for persisting config
   fusion-${ZONE_NAME}-etc-wandisco:
