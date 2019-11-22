@@ -91,6 +91,7 @@ services:
       - ${FUSION_SERVER_HDFS_PORT}:${FUSION_SERVER_HDFS_PORT}
       - ${FUSION_SERVER_PORT}:${FUSION_SERVER_PORT}
       - ${FUSION_SERVER_TLS_PORT}:${FUSION_SERVER_TLS_PORT}
+      - ${FUSION_REPLICATION_PORT}:${FUSION_REPLICATION_PORT}
     restart: unless-stopped
     environment:
       - DB_ACTION=
