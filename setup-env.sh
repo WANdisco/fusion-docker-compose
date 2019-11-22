@@ -2,6 +2,9 @@
 
 CALLED=$_
 
+MINIMUM_DOCKER_VERSION="18.09.7"
+MINIMUM_DOCKER_COMPOSE_VERSION="1.24.1"
+
 # check if script has been sourced
 IS_SOURCED=1
 if [ "$0" = "$BASH_SOURCE" -o "$0" = "$CALLED" -o -z "$CALLED" ]; then
@@ -19,14 +22,57 @@ else
   cd "$(dirname $0)"
 fi
 
+print_warning() {
+  echo "Warning: $@"
+}
+
+docker_warning() {
+  print_warning "$@"
+  echo "  For installation details, please see: https://docs.docker.com/install/"
+  echo ""
+}
+docker_compose_warning() {
+  print_warning "$@"
+  echo "  For installation details, please see: https://docs.docker.com/compose/install/"
+  echo ""
+}
+
+has_docker() {
+  local docker_version=$(docker version  --format '{{.Server.Version}}')
+  local ret="$?"
+  local lowest_sorted_docker_version=$(printf "$MINIMUM_DOCKER_VERSION\n$docker_version" | sort -V | head -1)
+  if [ "$ret" != "0" ] || [ -z "$docker_version" ]; then
+    docker_warning "docker is either not installed or not running, docker version $MINIMUM_DOCKER_VERSION or above should be installed and running"
+    # If the minimum version is sorted to the top then our version is >= the min
+  elif [ "$lowest_sorted_docker_version" != "$MINIMUM_DOCKER_VERSION" ]; then
+    docker_warning "docker version should be $MINIMUM_DOCKER_VERSION or above (found: $docker_version)"
+  fi
+}
+
+has_docker_compose() {
+  local docker_compose_version=$(docker-compose version --short)
+  local ret="$?"
+  local lowest_sorted_docker_compose_version=$(printf "$MINIMUM_DOCKER_COMPOSE_VERSION\n$docker_compose_version" | sort -V | head -1)
+  if [ "$ret" != "0" ]; then
+    docker_compose_warning "docker-compose must be installed to run the fusion environment"
+  elif [ "$lowest_sorted_docker_compose_version" != "$MINIMUM_DOCKER_COMPOSE_VERSION" ]; then
+    docker_compose_warning "docker-compose version should be $MINIMUM_DOCKER_COMPOSE_VERSION or above (found: $docker_compose_version)"
+  fi
+}
+
 # check if not running inside a container and missing prereq
 inside_container() {
-  if grep -q '1:name=systemd:/docker/' </proc/self/cgroup; then
+  if grep -q ':name=systemd:/docker/' </proc/self/cgroup; then
     return 0
   else
     return 1
   fi
 }
+if ! inside_container &>/dev/null ; then
+  has_docker
+  has_docker_compose
+fi
+
 if ! inside_container && ( \
        [ "$(uname -s)" != "Linux" ] \
     || ! ./utils/uuid-gen.py >/dev/null 2>&1 \
@@ -36,7 +82,7 @@ if ! inside_container && ( \
   # TODO: this image needs to be moved to WANdisco's repos
   # for now building on the fly
   # echo "Running setup-env inside a container" >&2
-  echo "Warning: dependencies missing, running this command inside of a docker container" >&2
+  print_warning "dependencies missing, running this command inside of a docker container" >&2
   docker image inspect wandisco/setup-env:0.1 >/dev/null 2>&1 \
     || docker build -t wandisco/setup-env:0.1 .
   docker run -it --rm --net host \
