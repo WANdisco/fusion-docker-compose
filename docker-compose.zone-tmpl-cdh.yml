@@ -103,14 +103,16 @@ services:
     restart: unless-stopped
     networks:
       - fusion
+    hostname: "${DOCKER_HOSTNAME}
     ports:
       - "${SSHD_PORT}:22"
+      - "${SSHD_AMBARI_PORT}:${SSHD_AMBARI_PORT}"
     env_file:
       - "${ZONE_ENV}"
     volumes:
+      - fusion-${ZONE_NAME}-etc-shared:/etc/shared
       - fusion-${ZONE_NAME}-etc-ssh:/etc/ssh
       - fusion-${ZONE_NAME}-root-ssh:/root/.ssh
-      - fusion-${ZONE_NAME}-sshd-export:/etc/sshd_export
 
   # Fusion Server
   fusion-server-${ZONE_NAME}:
@@ -136,7 +138,7 @@ services:
       - fusion-${ZONE_NAME}-opt-wandisco-fusion-server-dcone:/opt/wandisco/fusion/server/dcone
       - fusion-${ZONE_NAME}-etc-wandisco:/etc/wandisco
       - fusion-${ZONE_NAME}-etc-hadoop:/etc/hadoop
-      - fusion-${ZONE_NAME}-sshd-export:/etc/sshd_export
+      - fusion-${ZONE_NAME}-etc-shared:/etc/shared
       - fusion-${ZONE_NAME}-restart:/restart
       - fusion-${ZONE_NAME}-opt-wandisco-fusion-ui-server-properties:/opt/wandisco/fusion-ui-server/properties
       ${LICENSE_FILE_PATH}
@@ -159,9 +161,9 @@ volumes:
   fusion-${ZONE_NAME}-opt-wandisco-fusion-server-dcone:
 
   # volumes for sshd
+  fusion-${ZONE_NAME}-etc-shared:
   fusion-${ZONE_NAME}-etc-ssh:
   fusion-${ZONE_NAME}-root-ssh:
-  fusion-${ZONE_NAME}-sshd-export:
 
   # volumes for persisting config
   fusion-${ZONE_NAME}-etc-wandisco:
