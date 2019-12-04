@@ -103,7 +103,7 @@ services:
     restart: unless-stopped
     networks:
       - fusion
-    hostname: "${DOCKER_HOSTNAME}
+    hostname: "${DOCKER_HOSTNAME}"
     ports:
       - "${SSHD_PORT}:22"
       - "${SSHD_AMBARI_PORT}:${SSHD_AMBARI_PORT}"
