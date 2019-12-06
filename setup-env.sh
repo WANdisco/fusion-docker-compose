@@ -324,6 +324,7 @@ fi
     ZONE_ENV=${ZONE_A_ENV}
     ZONE_NAME=${ZONE_A_NAME}
     ZONE_TYPE=${ZONE_A_TYPE}
+    save_var ZONE_TYPE "$ZONE_TYPE" "$SAVE_ENV"
     # set common fusion variables
     FUSION_NODE_ID=${ZONE_A_NODE_ID}
     # save common vars to zone file
@@ -359,6 +360,7 @@ fi
     ZONE_ENV=${ZONE_B_ENV}
     ZONE_NAME=${ZONE_B_NAME}
     ZONE_TYPE=${ZONE_B_TYPE}
+    save_var ZONE_TYPE "$ZONE_TYPE" "$SAVE_ENV"
     # set common fusion variables
     FUSION_NODE_ID=${ZONE_B_NODE_ID}
     # save common vars to zone file
