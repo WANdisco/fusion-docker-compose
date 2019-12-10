@@ -1,2 +1,0 @@
-./docker-compose.cdh.yml.tpl:./vars-cdh-2.14.1.0.env
-./docker-compose.hdi.adls2.yml.tpl:./vars-hdi-adls2-2.14.1.0.env
