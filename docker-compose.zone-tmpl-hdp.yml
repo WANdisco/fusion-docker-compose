@@ -113,6 +113,7 @@ services:
       - fusion-${ZONE_NAME}-etc-shared:/etc/shared
       - fusion-${ZONE_NAME}-etc-ssh:/etc/ssh
       - fusion-${ZONE_NAME}-root-ssh:/root/.ssh
+      - fusion-${ZONE_NAME}-usr-hdp:/usr/hdp
 
   # Fusion Server
   fusion-server-${ZONE_NAME}:
@@ -161,6 +162,7 @@ volumes:
   # volumes for sshd
   fusion-${ZONE_NAME}-etc-shared:
   fusion-${ZONE_NAME}-etc-ssh:
+  fusion-${ZONE_NAME}-usr-hdp:
   fusion-${ZONE_NAME}-root-ssh:
 
   # volumes for persisting config
