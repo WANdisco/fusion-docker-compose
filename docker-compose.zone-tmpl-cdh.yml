@@ -66,8 +66,8 @@ services:
     ports:
       - "${FUSION_RANGER_PROXY_PORT}:${FUSION_RANGER_PROXY_PORT}"
     volumes:
-      - fusion-hdp-etc-wandisco:/etc/wandisco
-      - fusion-hdp-etc-hadoop:/etc/hadoop
+      - fusion-${ZONE_NAME}-etc-wandisco:/etc/wandisco
+      - fusion-${ZONE_NAME}-etc-hadoop:/etc/hadoop
 
   # Fusion UI Server
   fusion-ui-server-${ZONE_NAME}:
