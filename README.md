@@ -69,6 +69,20 @@ docker-compose ps
 ### UI Access 
 Fusion UI is available at http://docker_host:8081 
 
+### SSH Access
+SSH is configured on ports 2022 and 2522 on Hadoop and Cloudera zone types to allow remote configuration. The key for remote access to these ssh instances is available in the container logs:
+
+```bash
+# get the container names for the sshd servers
+docker-compose ps
+# extract the key, replace with container name from above
+docker logs compose_sshd-hdp_1 
+# after writing to a secure pem file, test remote access
+ssh -i cdh-key.pem -p 2022 root@docker_host
+```
+
+This ssh instance only makes selected files available to the fusion server via the /etc/sshd_exports volume mount. Any other changes are isolated to the container.
+
 ## License
 This repository is Apache 2.0 licensed. Please see `./LICENSE` for more information.
 
