@@ -235,6 +235,27 @@ validate_number() {
   esac
 }
 
+validate_plugin() {
+  value="$1"
+  case "$value" in
+    databricks)
+      # TODO: validate zone type/version compatibility
+      return 0
+      ;;
+    livehive)
+      # TODO: validate zone type/version compatibility
+      return 0
+      ;;
+    NONE)
+      return 0
+      ;;
+    *)
+      echo "Error: unknown plugin. Valid options are: databricks, livehive, NONE"
+      return 1
+      ;;
+  esac
+}
+
 validate_zone_name() {
   zone_name="$1"
   if [ -z "$zone_name" ] || echo "$zone_name" | egrep -q '[^a-z0-9\-]'; then
@@ -303,21 +324,18 @@ fi
 : "${ZONE_A_ENV:=zone_a.env}"
 : "${ZONE_B_ENV:=zone_b.env}"
 : "${COMPOSE_FILE_A_OUT:=docker-compose.zone-a.yml}"
+: "${COMPOSE_FILE_A_PLUGIN_OUT:=docker-compose.zone-a-plugin.yml}"
 : "${COMPOSE_FILE_B_OUT:=docker-compose.zone-b.yml}"
+: "${COMPOSE_FILE_B_PLUGIN_OUT:=docker-compose.zone-b-plugin.yml}"
 : "${COMPOSE_FILE_COMMON_OUT:=docker-compose.common.yml}"
 
 # run everything below in a subshell to avoid leaking env vars
 (
   # common environment setup
-
   SAVE_ENV=${COMMON_ENV}
 
   ## load existing common variables
   [ -f "./${COMMON_ENV}" ] && load_file "./${COMMON_ENV}"
-
-  ## default values for variables to avoid prompts
-  #: "${ZONE_A_NAME:=zone-a}"
-  #: "${ZONE_B_NAME:=zone-b}"
 
   ## set variables for compose zone a
 
@@ -352,6 +370,7 @@ fi
     ZONE_ENV=${ZONE_A_ENV}
     ZONE_NAME=${ZONE_A_NAME}
     ZONE_TYPE=${ZONE_A_TYPE}
+    save_var ZONE_TYPE "$ZONE_TYPE" "$SAVE_ENV"
     # set common fusion variables
     FUSION_NODE_ID=${ZONE_A_NODE_ID}
     # save common vars to zone file
@@ -366,6 +385,14 @@ fi
     # re-load variables
     [ -f "./${COMMON_ENV}" ] && load_file "./${COMMON_ENV}"
     [ -f "${ZONE_ENV}" ] && load_file "./${ZONE_ENV}"
+    # configure plugins
+    update_var ZONE_A_PLUGIN "Select plugin for ${ZONE_NAME} (livehive, or NONE to skip)" "NONE" validate_plugin
+    ZONE_PLUGIN=${ZONE_A_PLUGIN}
+    if [ "$ZONE_A_PLUGIN" != "NONE" ]; then
+      . "./plugin-${ZONE_PLUGIN}.conf"
+      [ -f "${ZONE_ENV}" ] && load_file "./${ZONE_ENV}"
+      envsubst <"docker-compose.plugin-tmpl-${ZONE_PLUGIN}.yml" >"${COMPOSE_FILE_A_PLUGIN_OUT}"
+    fi
     envsubst <"docker-compose.zone-tmpl-${ZONE_TYPE}.yml" >"${COMPOSE_FILE_A_OUT}"
     set +a
   )
@@ -379,6 +406,7 @@ fi
     ZONE_ENV=${ZONE_B_ENV}
     ZONE_NAME=${ZONE_B_NAME}
     ZONE_TYPE=${ZONE_B_TYPE}
+    save_var ZONE_TYPE "$ZONE_TYPE" "$SAVE_ENV"
     # set common fusion variables
     FUSION_NODE_ID=${ZONE_B_NODE_ID}
     # save common vars to zone file
@@ -393,6 +421,14 @@ fi
     # re-load variables
     [ -f "./${COMMON_ENV}" ] && load_file "./${COMMON_ENV}"
     [ -f "${ZONE_ENV}" ] && load_file "./${ZONE_ENV}"
+    # configure plugins
+    update_var ZONE_B_PLUGIN "Select plugin for ${ZONE_NAME} (livehive, or NONE to skip)" "NONE" validate_plugin
+    ZONE_PLUGIN=${ZONE_B_PLUGIN}
+    if [ "$ZONE_B_PLUGIN" != "NONE" ]; then
+      . "./plugin-${ZONE_PLUGIN}.conf"
+      [ -f "${ZONE_ENV}" ] && load_file "./${ZONE_ENV}"
+      envsubst <"docker-compose.plugin-tmpl-${ZONE_PLUGIN}.yml" >"${COMPOSE_FILE_B_PLUGIN_OUT}"
+    fi
     envsubst <"docker-compose.zone-tmpl-${ZONE_TYPE}.yml" >"${COMPOSE_FILE_B_OUT}"
     set +a
   fi; )
@@ -404,21 +440,25 @@ fi
   save_var FUSION_SERVER_HOSTNAMES "$FUSION_SERVER_HOSTNAMES" "${COMMON_ENV}"
 
   ## generate the common yml
-  (
-    set -a
-    # load env files in order of increasing priority
-    [ -f "${ZONE_B_ENV}" ] && load_file "./${ZONE_B_ENV}"
-    [ -f "${ZONE_A_ENV}" ] && load_file "./${ZONE_A_ENV}"
-    [ -f "./${COMMON_ENV}" ] && load_file "./${COMMON_ENV}"
-    export COMMON_ENV
-    envsubst <"docker-compose.common-tmpl.yml" >"${COMPOSE_FILE_COMMON_OUT}"
-    set +a
-  )
+  set -a
+  # load env files in order of increasing priority
+  [ -f "${ZONE_B_ENV}" ] && load_file "./${ZONE_B_ENV}"
+  [ -f "${ZONE_A_ENV}" ] && load_file "./${ZONE_A_ENV}"
+  [ -f "./${COMMON_ENV}" ] && load_file "./${COMMON_ENV}"
+  export COMMON_ENV
+  envsubst <"docker-compose.common-tmpl.yml" >"${COMPOSE_FILE_COMMON_OUT}"
+  set +a
 
   # set compose variables
   COMPOSE_FILE="${COMPOSE_FILE_COMMON_OUT}:${COMPOSE_FILE_A_OUT}"
   if [ "$ZONE_B_TYPE" != "NONE" ]; then
     COMPOSE_FILE="${COMPOSE_FILE}:${COMPOSE_FILE_B_OUT}"
+  fi
+  if [ "$ZONE_A_PLUGIN" != "NONE" ]; then
+    COMPOSE_FILE="${COMPOSE_FILE}:${COMPOSE_FILE_A_PLUGIN_OUT}"
+  fi
+  if [ "$ZONE_B_PLUGIN" != "NONE" ]; then
+    COMPOSE_FILE="${COMPOSE_FILE}:${COMPOSE_FILE_B_PLUGIN_OUT}"
   fi
 
   # write the .env file
