@@ -105,6 +105,8 @@ services:
   sshd-${ZONE_NAME}:
     image: wandisco/sshd:${SSHD_OS}-${SSHD_VERSION}
     restart: unless-stopped
+    depends_on:
+      - fusion-server-${ZONE_NAME}
     networks:
       - fusion
     hostname: "${DOCKER_HOSTNAME}"
@@ -114,6 +116,7 @@ services:
     env_file:
       - "${ZONE_ENV}"
     volumes:
+      - fusion-${ZONE_NAME}-etc-hadoop:/etc/hadoop
       - fusion-${ZONE_NAME}-etc-shared:/etc/shared
       - fusion-${ZONE_NAME}-etc-ssh:/etc/ssh
       - fusion-${ZONE_NAME}-root-ssh:/root/.ssh
@@ -123,8 +126,6 @@ services:
   fusion-server-${ZONE_NAME}:
     image: wandisco/fusion-server-${PLATFORM}:${FUSION_BASE_VERSION}-${FUSION_IMAGE_RELEASE}
     restart: unless-stopped
-    depends_on:
-      - sshd-${ZONE_NAME}
     networks:
       - fusion
     ports:
