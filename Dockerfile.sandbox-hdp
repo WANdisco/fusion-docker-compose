@@ -1,0 +1,32 @@
+ARG repository=hortonworks/sandbox-hdp
+ARG tag=2.6.5
+FROM ${repository}:${tag}
+
+# download and install JCE
+RUN cd /tmp \
+ && curl -b "oraclelicense=accept-securebackup-cookie" -sSOL http://download.oracle.com/otn-pub/java/jce/8/jce_policy-8.zip \
+ && unzip jce_policy-8.zip \
+ && mv /tmp/UnlimitedJCEPolicyJDK8/*.jar /usr/java/default/jre/lib/security/ \
+ && rm -r /tmp/jce_policy-8.zip /tmp/UnlimitedJCEPolicyJDK8
+
+# install kerberos server
+RUN yum install -y \
+      krb5-auth-dialog \
+      krb5-libs \
+      krb5-server \
+      krb5-workstation
+
+COPY stage.sandbox-hdp/ /
+
+# setup kerberos realm and admin user
+RUN sed -e 's/EXAMPLE.COM/WANDISCO.COM/' -i /var/kerberos/krb5kdc/kadm5.acl \
+ && kdb5_util create -s -P wandisco \
+ && kadmin.local -q "addprinc -pw admin hdpadmin/admin"
+
+# disable nodocs setting which breaks kerberos setup
+RUN sed -e 's/^tsflags=nodocs/# tsflags=nodocs/' -i /etc/yum.conf \
+ && yum reinstall -y oozie_2_6_5_0_292-client
+
+ENTRYPOINT [ "/usr/bin/entrypointd.sh" ]
+CMD [ "/usr/sbin/init" ]
+
