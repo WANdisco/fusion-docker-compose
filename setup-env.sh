@@ -256,6 +256,27 @@ validate_plugin() {
   esac
 }
 
+validate_plugin_list() {
+  # the "NULL" is to force a prompt on an emtpy string
+  value=$(echo "${1:-NULL}" | sed 's/[ :,]\+/:/g')
+  remainder="$value"
+  while [ -n "$remainder" ]; do
+    plugin="${remainder%%:*}"
+    [ "$plugin" = "$remainder" ] && remainder= || remainder="${remainder#*:}"
+    case $plugin in
+      ranger|NONE)
+        ;;
+      *)
+        echo "Valid plugins are:"
+        echo "  ranger"
+        echo "use a space or colon to separate multiple plugins"
+        echo "or enter NONE for no plugins"
+        return 1
+        ;;
+    esac
+  done
+}
+
 validate_zone_name() {
   zone_name="$1"
   if [ -z "$zone_name" ] || echo "$zone_name" | egrep -q '[^a-z0-9\-]'; then
@@ -323,10 +344,8 @@ fi
 : "${COMMON_ENV:=common.env}"
 : "${ZONE_A_ENV:=zone_a.env}"
 : "${ZONE_B_ENV:=zone_b.env}"
-: "${COMPOSE_FILE_A_OUT:=docker-compose.zone-a.yml}"
-: "${COMPOSE_FILE_A_PLUGIN_OUT:=docker-compose.zone-a-plugin.yml}"
-: "${COMPOSE_FILE_B_OUT:=docker-compose.zone-b.yml}"
-: "${COMPOSE_FILE_B_PLUGIN_OUT:=docker-compose.zone-b-plugin.yml}"
+: "${COMPOSE_FILE_A_PREFIX:=docker-compose.zone-a}"
+: "${COMPOSE_FILE_B_PREFIX:=docker-compose.zone-b}"
 : "${COMPOSE_FILE_COMMON_OUT:=docker-compose.common.yml}"
 
 # run everything below in a subshell to avoid leaking env vars
@@ -370,6 +389,7 @@ fi
     ZONE_ENV=${ZONE_A_ENV}
     ZONE_NAME=${ZONE_A_NAME}
     ZONE_TYPE=${ZONE_A_TYPE}
+    COMPOSE_FILE_LIST_NEW=""
     save_var ZONE_TYPE "$ZONE_TYPE" "$SAVE_ENV"
     # set common fusion variables
     FUSION_NODE_ID=${ZONE_A_NODE_ID}
@@ -386,14 +406,37 @@ fi
     [ -f "./${COMMON_ENV}" ] && load_file "./${COMMON_ENV}"
     [ -f "${ZONE_ENV}" ] && load_file "./${ZONE_ENV}"
     # configure plugins
+    validate_plugin_list "${ZONE_A_PLUGIN_LIST}"
+    update_var ZONE_A_PLUGIN_LIST "Select plugin list for ${ZONE_NAME}" "NONE" validate_plugin_list
+    ZONE_A_PLUGIN_LIST=$(echo $ZONE_A_PLUGIN_LIST | sed 's/[ :,]\+/:/g')
+    save_var ZONE_A_PLUGIN_LIST "${ZONE_A_PLUGIN_LIST}" "$SAVE_ENV"
+    remainder="$ZONE_A_PLUGIN_LIST"
+    while [ -n "$remainder" ]; do
+      plugin="${remainder%%:*}"
+      [ "$plugin" = "$remainder" ] && remainder= || remainder="${remainder#*:}"
+      ZONE_PLUGIN="${plugin}"
+      if [ "$ZONE_PLUGIN" != "NONE" ]; then
+        . "./plugin-${ZONE_PLUGIN}.conf"
+        [ -f "${ZONE_ENV}" ] && load_file "./${ZONE_ENV}"
+        # write compose file and add name to zone compose file list
+        envsubst <"docker-compose.plugin-tmpl-${ZONE_PLUGIN}.yml" >"${COMPOSE_FILE_A_PREFIX}.${ZONE_PLUGIN}.yml"
+        COMPOSE_FILE_LIST_NEW="${COMPOSE_FILE_LIST_NEW:+${COMPOSE_FILE_LIST_NEW}:}${COMPOSE_FILE_A_PREFIX}.${ZONE_PLUGIN}.yml"
+      fi
+    done
+    # mutually exclusive plugins
     update_var ZONE_A_PLUGIN "Select plugin for ${ZONE_NAME} (livehive, or NONE to skip)" "NONE" validate_plugin
     ZONE_PLUGIN=${ZONE_A_PLUGIN}
     if [ "$ZONE_A_PLUGIN" != "NONE" ]; then
       . "./plugin-${ZONE_PLUGIN}.conf"
       [ -f "${ZONE_ENV}" ] && load_file "./${ZONE_ENV}"
-      envsubst <"docker-compose.plugin-tmpl-${ZONE_PLUGIN}.yml" >"${COMPOSE_FILE_A_PLUGIN_OUT}"
+      # write compose file and add name to zone compose file list
+      envsubst <"docker-compose.plugin-tmpl-${ZONE_PLUGIN}.yml" >"${COMPOSE_FILE_A_PREFIX}.${ZONE_PLUGIN}.yml"
+      COMPOSE_FILE_LIST_NEW="${COMPOSE_FILE_LIST_NEW:+${COMPOSE_FILE_LIST_NEW}:}${COMPOSE_FILE_A_PREFIX}.${ZONE_PLUGIN}.yml"
     fi
-    envsubst <"docker-compose.zone-tmpl-${ZONE_TYPE}.yml" >"${COMPOSE_FILE_A_OUT}"
+    # write compose file and add name to zone compose file list
+    envsubst <"docker-compose.zone-tmpl-${ZONE_TYPE}.yml" >"${COMPOSE_FILE_A_PREFIX}.yml"
+    COMPOSE_FILE_LIST_NEW="${COMPOSE_FILE_LIST_NEW:+${COMPOSE_FILE_LIST_NEW}:}${COMPOSE_FILE_A_PREFIX}.yml"
+    save_var COMPOSE_FILE_LIST "$COMPOSE_FILE_LIST_NEW" "$SAVE_ENV"
     set +a
   )
 
@@ -406,6 +449,7 @@ fi
     ZONE_ENV=${ZONE_B_ENV}
     ZONE_NAME=${ZONE_B_NAME}
     ZONE_TYPE=${ZONE_B_TYPE}
+    COMPOSE_FILE_LIST_NEW=""
     save_var ZONE_TYPE "$ZONE_TYPE" "$SAVE_ENV"
     # set common fusion variables
     FUSION_NODE_ID=${ZONE_B_NODE_ID}
@@ -422,14 +466,37 @@ fi
     [ -f "./${COMMON_ENV}" ] && load_file "./${COMMON_ENV}"
     [ -f "${ZONE_ENV}" ] && load_file "./${ZONE_ENV}"
     # configure plugins
+    validate_plugin_list "${ZONE_B_PLUGIN_LIST}"
+    update_var ZONE_B_PLUGIN_LIST "Select plugin list for ${ZONE_NAME}" "NONE" validate_plugin_list
+    ZONE_B_PLUGIN_LIST=$(echo $ZONE_B_PLUGIN_LIST | sed 's/[ :,]\+/:/g')
+    save_var ZONE_B_PLUGIN_LIST "${ZONE_B_PLUGIN_LIST}" "$SAVE_ENV"
+    remainder="$ZONE_B_PLUGIN_LIST"
+    while [ -n "$remainder" ]; do
+      plugin="${remainder%%:*}"
+      [ "$plugin" = "$remainder" ] && remainder= || remainder="${remainder#*:}"
+      ZONE_PLUGIN="${plugin}"
+      if [ "$ZONE_PLUGIN" != "NONE" ]; then
+        . "./plugin-${ZONE_PLUGIN}.conf"
+        [ -f "${ZONE_ENV}" ] && load_file "./${ZONE_ENV}"
+        # write compose file and add name to zone compose file list
+        envsubst <"docker-compose.plugin-tmpl-${ZONE_PLUGIN}.yml" >"${COMPOSE_FILE_B_PREFIX}.${ZONE_PLUGIN}.yml"
+        COMPOSE_FILE_LIST_NEW="${COMPOSE_FILE_LIST_NEW:+${COMPOSE_FILE_LIST_NEW}:}${COMPOSE_FILE_B_PREFIX}.${ZONE_PLUGIN}.yml"
+      fi
+    done
+    # mutually exclusive plugins
     update_var ZONE_B_PLUGIN "Select plugin for ${ZONE_NAME} (livehive, or NONE to skip)" "NONE" validate_plugin
     ZONE_PLUGIN=${ZONE_B_PLUGIN}
     if [ "$ZONE_B_PLUGIN" != "NONE" ]; then
       . "./plugin-${ZONE_PLUGIN}.conf"
       [ -f "${ZONE_ENV}" ] && load_file "./${ZONE_ENV}"
-      envsubst <"docker-compose.plugin-tmpl-${ZONE_PLUGIN}.yml" >"${COMPOSE_FILE_B_PLUGIN_OUT}"
+      # write compose file and add name to zone compose file list
+      envsubst <"docker-compose.plugin-tmpl-${ZONE_PLUGIN}.yml" >"${COMPOSE_FILE_B_PREFIX}.${ZONE_PLUGIN}.yml"
+      COMPOSE_FILE_LIST_NEW="${COMPOSE_FILE_LIST_NEW:+${COMPOSE_FILE_LIST_NEW}:}${COMPOSE_FILE_B_PREFIX}.${ZONE_PLUGIN}.yml"
     fi
-    envsubst <"docker-compose.zone-tmpl-${ZONE_TYPE}.yml" >"${COMPOSE_FILE_B_OUT}"
+    # write compose file and add name to zone compose file list
+    envsubst <"docker-compose.zone-tmpl-${ZONE_TYPE}.yml" >"${COMPOSE_FILE_B_PREFIX}.yml"
+    COMPOSE_FILE_LIST_NEW="${COMPOSE_FILE_LIST_NEW:+${COMPOSE_FILE_LIST_NEW}:}${COMPOSE_FILE_B_PREFIX}.yml"
+    save_var COMPOSE_FILE_LIST "$COMPOSE_FILE_LIST_NEW" "$SAVE_ENV"
     set +a
   fi; )
 
@@ -439,27 +506,23 @@ fi
   fi
   save_var FUSION_SERVER_HOSTNAMES "$FUSION_SERVER_HOSTNAMES" "${COMMON_ENV}"
 
-  ## generate the common yml
   set -a
   # load env files in order of increasing priority
+  unset COMPOSE_FILE
+  unset COMPOSE_FILE_LIST
   [ -f "${ZONE_B_ENV}" ] && load_file "./${ZONE_B_ENV}"
+  [ -n "$COMPOSE_FILE_LIST" ] && COMPOSE_FILE="${COMPOSE_FILE:+${COMPOSE_FILE}:}${COMPOSE_FILE_LIST}"
+  unset COMPOSE_FILE_LIST
   [ -f "${ZONE_A_ENV}" ] && load_file "./${ZONE_A_ENV}"
+  [ -n "$COMPOSE_FILE_LIST" ] && COMPOSE_FILE="${COMPOSE_FILE:+${COMPOSE_FILE}:}${COMPOSE_FILE_LIST}"
+  ## generate the common yml
   [ -f "./${COMMON_ENV}" ] && load_file "./${COMMON_ENV}"
   export COMMON_ENV
+  COMPOSE_FILE_LIST="${COMPOSE_FILE_COMMON_OUT}"
   envsubst <"docker-compose.common-tmpl.yml" >"${COMPOSE_FILE_COMMON_OUT}"
+  save_var COMPOSE_FILE_LIST "$COMPOSE_FILE_COMMON_OUT" "$COMMON_ENV"
+  COMPOSE_FILE="${COMPOSE_FILE:+${COMPOSE_FILE}:}${COMPOSE_FILE_LIST}"
   set +a
-
-  # set compose variables
-  COMPOSE_FILE="${COMPOSE_FILE_COMMON_OUT}:${COMPOSE_FILE_A_OUT}"
-  if [ "$ZONE_B_TYPE" != "NONE" ]; then
-    COMPOSE_FILE="${COMPOSE_FILE}:${COMPOSE_FILE_B_OUT}"
-  fi
-  if [ "$ZONE_A_PLUGIN" != "NONE" ]; then
-    COMPOSE_FILE="${COMPOSE_FILE}:${COMPOSE_FILE_A_PLUGIN_OUT}"
-  fi
-  if [ "$ZONE_B_PLUGIN" != "NONE" ]; then
-    COMPOSE_FILE="${COMPOSE_FILE}:${COMPOSE_FILE_B_PLUGIN_OUT}"
-  fi
 
   # write the .env file
   save_var COMPOSE_FILE "$COMPOSE_FILE" .env
