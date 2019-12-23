@@ -54,6 +54,21 @@ services:
       - fusion-${ZONE_NAME}-etc-wandisco:/etc/wandisco
       - fusion-${ZONE_NAME}-etc-hadoop:/etc/hadoop
 
+  # Fusion Ranger Proxy
+  fusion-ranger-proxy-${ZONE_NAME}:
+    image: wandisco/fusion-ranger-proxy-${PLATFORM}:${FUSION_BASE_VERSION}-${FUSION_IMAGE_RELEASE}
+    depends_on:
+      - fusion-server-${ZONE_NAME}
+    networks:
+      - fusion
+    env_file:
+      - "${ZONE_ENV}"
+    ports:
+      - "${FUSION_RANGER_PROXY_PORT}:${FUSION_RANGER_PROXY_PORT}"
+    volumes:
+      - fusion-${ZONE_NAME}-etc-wandisco:/etc/wandisco
+      - fusion-${ZONE_NAME}-etc-hadoop:/etc/hadoop
+
   # Fusion UI Server
   fusion-ui-server-${ZONE_NAME}:
     image: wandisco/fusion-ui-server-${PLATFORM}:${FUSION_BASE_VERSION}-${FUSION_IMAGE_RELEASE}
