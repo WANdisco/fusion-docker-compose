@@ -133,17 +133,8 @@ validate_file_path() {
 validate_hostname() {
   hostname="$1"
 
-  if [ -n "$hostname" ] && getent hosts "$hostname" >/dev/null 2>&1; then
-    # resolving DNS
-    return 0
-  elif [ -n "$hostname" ] && expr "$hostname" : '[0-9][0-9]*\.[0-9][0-9]*\.[0-9][0-9]*\.[0-9][0-9]*$' >/dev/null 2>&1; then
-    # or accept anything that looks like an IP address
-    # this is a very weak test, it does not verify the parts are each below 255
-    return 0
-  else
-    echo "Error: hostname did not resolve in DNS"
-    return 1
-  fi
+  validate_not_empty "$hostname"
+  return $?
 }
 
 validate_not_empty() {
@@ -272,7 +263,7 @@ if [ $opt_l -eq 0 ]; then
   has_docker
   has_docker_compose
 
-  echo "Starting setup container:"
+  echo "Getting the latest Fusion Setup image"
   docker run -it --rm --net host \
     -u "$(id -u):$(id -g)" \
     -v "$(pwd):$(pwd)" -w "$(pwd)" \
