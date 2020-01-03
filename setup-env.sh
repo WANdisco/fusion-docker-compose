@@ -470,6 +470,6 @@ fi
   echo "To start Fusion run the command:"
   echo "  docker-compose up -d"
   echo "Once Fusion starts the UI will be available on:"
-  echo "  http://${DOCKER_HOSTNAME}:${ONEUI_SERVER_PORT}"
+  echo "  http://${DOCKER_HOSTNAME}:${ONEUI_SERVER_PORT} or http://IP-ADDRESS:${ONEUI_SERVER_PORT} with the IP of your docker host"
 )
 
