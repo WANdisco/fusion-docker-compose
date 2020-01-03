@@ -457,7 +457,7 @@ fi
   if [ "$ZONE_A_PLUGIN" != "NONE" ]; then
     COMPOSE_FILE="${COMPOSE_FILE}:${COMPOSE_FILE_A_PLUGIN_OUT}"
   fi
-  if [ "$ZONE_B_PLUGIN" != "NONE" ]; then
+  if [ "$ZONE_B_TYPE" != "NONE" -a "$ZONE_B_PLUGIN" != "NONE" ]; then
     COMPOSE_FILE="${COMPOSE_FILE}:${COMPOSE_FILE_B_PLUGIN_OUT}"
   fi
 
