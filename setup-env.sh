@@ -457,7 +457,7 @@ fi
   if [ "$ZONE_A_PLUGIN" != "NONE" ]; then
     COMPOSE_FILE="${COMPOSE_FILE}:${COMPOSE_FILE_A_PLUGIN_OUT}"
   fi
-  if [ "$ZONE_B_PLUGIN" != "NONE" ]; then
+  if [ "$ZONE_B_TYPE" != "NONE" -a "$ZONE_B_PLUGIN" != "NONE" ]; then
     COMPOSE_FILE="${COMPOSE_FILE}:${COMPOSE_FILE_B_PLUGIN_OUT}"
   fi
 
@@ -470,6 +470,6 @@ fi
   echo "To start Fusion run the command:"
   echo "  docker-compose up -d"
   echo "Once Fusion starts the UI will be available on:"
-  echo "  http://${DOCKER_HOSTNAME}:${ONEUI_SERVER_PORT}"
+  echo "  http://${DOCKER_HOSTNAME}:${ONEUI_SERVER_PORT} or http://ip-address:${ONEUI_SERVER_PORT} using the IP of your docker host."
 )
 
