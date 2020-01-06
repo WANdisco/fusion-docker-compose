@@ -231,7 +231,7 @@ adls2:       Azure Data Lake Service Gen 2
 s3:          AWS S3 Unmanaged
 hcfs-emr:    AWS HCFS EMR
 cdh:         Cloudera Hadoop
-hdp:         Hadoop
+hdp:         Hortonworks Hadoop
 alibaba-emr: Alibaba EMR
 EOZONE
   return 1
