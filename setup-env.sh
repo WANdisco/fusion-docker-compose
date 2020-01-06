@@ -1,26 +1,9 @@
 #!/bin/sh
 
-CALLED=$_
-
 MINIMUM_DOCKER_VERSION="18.09.7"
 MINIMUM_DOCKER_COMPOSE_VERSION="1.24.1"
 
-# check if script has been sourced
-IS_SOURCED=1
-if [ "$0" = "$BASH_SOURCE" -o "$0" = "$CALLED" -o -z "$CALLED" ]; then
-  IS_SOURCED=0
-fi
-
-# this script uses relative paths, this cd is more complex with a sourced script
-if [ $IS_SOURCED = 1 ]; then
-  if [ -n "$BASH_SOURCE" ]; then
-    cd "$(dirname $BASH_SOURCE)"
-  else
-    cd "$(dirname $CALLED)"
-  fi
-else
-  cd "$(dirname $0)"
-fi
+cd "$(dirname $0)"
 
 print_warning() {
   echo "Warning: $@"
@@ -31,6 +14,7 @@ docker_warning() {
   echo "  For installation details, please see: https://docs.docker.com/install/"
   echo ""
 }
+
 docker_compose_warning() {
   print_warning "$@"
   echo "  For installation details, please see: https://docs.docker.com/compose/install/"
@@ -60,44 +44,6 @@ has_docker_compose() {
   fi
 }
 
-# check if not running inside a container and missing prereq
-inside_container() {
-  if grep -q ':name=systemd:/docker/' </proc/self/cgroup; then
-    return 0
-  else
-    return 1
-  fi
-}
-if ! inside_container &>/dev/null ; then
-  has_docker
-  has_docker_compose
-fi
-
-if ! inside_container && ( \
-       [ "$(uname -s)" != "Linux" ] \
-    || ! ./utils/uuid-gen.py >/dev/null 2>&1 \
-    || [ ! -x "$(command -v envsubst)" ] \
-    || [ ! -x "$(command -v getent)" ] \
-    ); then
-  # TODO: this image needs to be moved to WANdisco's repos
-  # for now building on the fly
-  # echo "Running setup-env inside a container" >&2
-  print_warning "dependencies missing, running this command inside of a docker container" >&2
-  docker image inspect wandisco/setup-env:0.1 >/dev/null 2>&1 \
-    || docker build -t wandisco/setup-env:0.1 .
-  docker run -it --rm --net host \
-    -u "$(id -u):$(id -g)" \
-    -v "$(pwd):$(pwd)" -w "$(pwd)" \
-    wandisco/setup-env:0.1 ./setup-env.sh "$@"
-  exit $?
-fi
-
-opt_f="compose.env"
-opt_h=0
-opt_a=0
-opt_s=0
-
-# functions
 usage() {
   echo "Usage: $0 [opts]"
   echo " -a: all settings will be prompted"
@@ -187,17 +133,8 @@ validate_file_path() {
 validate_hostname() {
   hostname="$1"
 
-  if [ -n "$hostname" ] && getent hosts "$hostname" >/dev/null 2>&1; then
-    # resolving DNS
-    return 0
-  elif [ -n "$hostname" ] && expr "$hostname" : '[0-9][0-9]*\.[0-9][0-9]*\.[0-9][0-9]*\.[0-9][0-9]*$' >/dev/null 2>&1; then
-    # or accept anything that looks like an IP address
-    # this is a very weak test, it does not verify the parts are each below 255
-    return 0
-  else
-    echo "Error: hostname did not resolve in DNS"
-    return 1
-  fi
+  validate_not_empty "$hostname"
+  return $?
 }
 
 validate_not_empty() {
@@ -301,16 +238,39 @@ EOZONE
 }
 
 # parse CLI
-while getopts 'af:hs' option; do
+
+opt_f="compose.env"
+opt_l=0
+opt_h=0
+opt_a=0
+opt_s=0
+
+while getopts 'af:hls' option; do
   case $option in
     a) opt_a=1;;
     f) opt_f="$OPTARG";;
     h) opt_h=1;;
+    l) opt_l=1;;
     s) opt_s=1;;
+    ?) exit 1;;
   esac
 done
 set +e
 shift `expr $OPTIND - 1`
+
+
+if [ $opt_l -eq 0 ]; then
+  has_docker
+  has_docker_compose
+
+  echo "Getting the latest Fusion Setup image"
+  docker run -it --rm --net host \
+    -u "$(id -u):$(id -g)" \
+    -v "$(pwd):$(pwd)" -w "$(pwd)" \
+    -e RLWRAP_HOME=$(pwd) \
+    wandisco/setup-env:0.1 rlwrap ./setup-env.sh -l "$@"
+  exit $?
+fi
 
 if [ $# -gt 0 -o "$opt_h" = "1" ]; then
   usage

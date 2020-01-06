@@ -7,4 +7,4 @@ test.tpl
 !docker-compose.zone-tmpl*.yml
 !docker-compose.plugin-tmpl*.yml
 [._]*.sw[a-p]
-
+*.sh_history
