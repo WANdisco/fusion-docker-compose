@@ -237,29 +237,8 @@ EOZONE
   return 1
 }
 
-# parse CLI
 
-opt_f="compose.env"
-opt_l=0
-opt_h=0
-opt_a=0
-opt_s=0
-
-while getopts 'af:hls' option; do
-  case $option in
-    a) opt_a=1;;
-    f) opt_f="$OPTARG";;
-    h) opt_h=1;;
-    l) opt_l=1;;
-    s) opt_s=1;;
-    ?) exit 1;;
-  esac
-done
-set +e
-shift `expr $OPTIND - 1`
-
-
-if [ $opt_l -eq 0 ]; then
+if [ -z "$RUN_IN_CONTAINER" ]; then
   has_docker
   has_docker_compose
 
@@ -268,9 +247,28 @@ if [ $opt_l -eq 0 ]; then
     -u "$(id -u):$(id -g)" \
     -v "$(pwd):$(pwd)" -w "$(pwd)" \
     -e RLWRAP_HOME=$(pwd) \
-    wandisco/setup-env:0.1 rlwrap ./setup-env.sh -l "$@"
+    -e RUN_IN_CONTAINER=true \
+    wandisco/setup-env:0.1 rlwrap ./setup-env.sh "$@"
   exit $?
 fi
+
+opt_f="compose.env"
+opt_h=0
+opt_a=0
+opt_s=0
+
+while getopts 'af:hs' option; do
+  case $option in
+    a) opt_a=1;;
+    f) opt_f="$OPTARG";;
+    h) opt_h=1;;
+    s) opt_s=1;;
+    ?) exit 1;;
+  esac
+done
+set +e
+shift `expr $OPTIND - 1`
+
 
 if [ $# -gt 0 -o "$opt_h" = "1" ]; then
   usage
