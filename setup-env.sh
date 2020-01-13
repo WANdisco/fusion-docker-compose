@@ -248,7 +248,7 @@ if [ -z "$RUN_IN_CONTAINER" ]; then
     -v "$(pwd):$(pwd)" -w "$(pwd)" \
     -e RLWRAP_HOME=$(pwd) \
     -e RUN_IN_CONTAINER=true \
-    wandisco/setup-env:0.1 rlwrap ./setup-env.sh "$@"
+    wandisco/setup-env:0.2 rlwrap ./setup-env.sh "$@"
   exit $?
 fi
 
