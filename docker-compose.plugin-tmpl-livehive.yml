@@ -44,5 +44,7 @@ networks:
 
 volumes:
   logging-livehive-${ZONE_NAME}:
+  fusion-${ZONE_NAME}-etc-hadoop:
+  fusion-${ZONE_NAME}-etc-wandisco:
 
 
