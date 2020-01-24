@@ -295,6 +295,35 @@ fi
   ## load existing common variables
   [ -f "./${COMMON_ENV}" ] && load_file "./${COMMON_ENV}"
 
+  update_var USE_SANDBOX "Do you want to use the HDP sandbox (y/n)" "${USE_SANDBOX}" validate_not_empty
+
+  case $USE_SANDBOX in
+    y|Y)
+      save_var USE_SANDBOX "y" "$SAVE_ENV"
+      save_var ZONE_A_TYPE "hdp" "$SAVE_ENV"
+      save_var ZONE_A_NAME "sandbox-hdp" "$SAVE_ENV"
+      save_var ZONE_B_TYPE "adls2" "$SAVE_ENV"
+      save_var ZONE_B_NAME "adls2" "$SAVE_ENV"
+      save_var LICENSE_FILE "TRIAL" "$SAVE_ENV"
+      save_var DOCKER_HOSTNAME "sandbox-hdp" "$SAVE_ENV"
+
+      save_var HDP_VERSION "2.6.5" "$ZONE_A_ENV"
+      save_var HADOOP_NAME_NODE_HOSTNAME "sandbox-hdp" "$ZONE_A_ENV"
+      save_var HADOOP_NAME_NODE_PORT "8020" "$ZONE_A_ENV"
+      save_var NAME_NODE_PROXY_HOSTNAME "fusion-nn-proxy-sandbox-hdp" "$ZONE_A_ENV" 
+      save_var FUSION_NAME_NODE_SERVICE_NAME "$NAME_NODE_PROXY_HOSTNAME:8890" "$ZONE_A_ENV" 
+      save_var ZONE_A_PLUGIN "livehive" "$ZONE_A_ENV"
+      save_var HIVE_METASTORE_HOSTNAME "sandbox-hdp" "$ZONE_A_ENV"
+      save_var HIVE_METASTORE_PORT "9083" "$ZONE_A_ENV"
+
+      save_var HDI_VERSION "3.6" "$ZONE_B_ENV"
+      save_var ZONE_B_PLUGIN "NONE" "$ZONE_B_ENV"
+    ;;
+    *)
+      save_var USE_SANDBOX "n" "$SAVE_ENV"
+    ;;
+  esac
+
   ## set variables for compose zone a
 
   validate_zone_type "$ZONE_A_TYPE"
@@ -417,6 +446,9 @@ fi
   fi
   if [ "$ZONE_B_TYPE" != "NONE" -a "$ZONE_B_PLUGIN" != "NONE" ]; then
     COMPOSE_FILE="${COMPOSE_FILE}:${COMPOSE_FILE_B_PLUGIN_OUT}"
+  fi
+  if [ "$USE_SANDBOX" = "y" ]; then
+    COMPOSE_FILE="${COMPOSE_FILE}:docker-compose.sandbox-hdp.yml"
   fi
 
   # write the .env file
