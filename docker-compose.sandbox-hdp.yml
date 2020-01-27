@@ -20,6 +20,8 @@ services:
     image: registry.wandisco.com:8423/fusion_sandbox-hdp:v0.3
     privileged: true
     command: ["/sbin/init"]
+    depends_on:
+      - fusion-ui-server-sandbox-hdp
     ports:
       - "8080:8080"
       - "50070:50070"

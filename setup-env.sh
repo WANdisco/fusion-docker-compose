@@ -459,6 +459,19 @@ fi
   echo "  ./setup-env.sh -a"
   echo "To start Fusion run the command:"
   echo "  docker-compose up -d"
+
+
+  if [ "$USE_SANDBOX" = "y" ]; then
+    echo "Once Fusion starts the following interfaces will be available on this host:"
+    echo
+    echo "  Ambari:                   8080"
+    echo "  Fusion (HDP zone):        8083"
+    echo "  Fusion (ADSL Gen2 zone):  8583"
+    echo
+    echo "Please be aware that it may take some time for these ports to be fully available."
+    exit 0
+  fi
+
   echo "Once Fusion starts the UI will be available on:"
   echo "  http://${DOCKER_HOSTNAME}:${ONEUI_SERVER_PORT} or http://ip-address:${ONEUI_SERVER_PORT} using the IP of your docker host."
 )
