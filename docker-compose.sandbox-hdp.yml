@@ -23,6 +23,7 @@ services:
     depends_on:
       - fusion-ui-server-sandbox-hdp
     ports:
+      - "8020:8020"
       - "8080:8080"
       - "50070:50070"
       - "50010:50010"
