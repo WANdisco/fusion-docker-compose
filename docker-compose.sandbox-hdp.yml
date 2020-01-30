@@ -17,7 +17,7 @@ version: "3.7"
 
 services:
   sandbox-hdp:
-    image: registry.wandisco.com:8423/fusion_sandbox-hdp:v0.7
+    image: registry.wandisco.com:8423/fusion_sandbox-hdp:v0.8
     privileged: true
     command: ["/sbin/init"]
     depends_on:
