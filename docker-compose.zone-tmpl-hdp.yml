@@ -76,6 +76,7 @@ services:
       - fusion-${ZONE_NAME}-opt-wandisco-fusion-server-dcone:/opt/wandisco/fusion/server/dcone
       - fusion-${ZONE_NAME}-opt-wandisco-fusion-ui-server-properties:/opt/wandisco/fusion-ui-server/properties
       - fusion-${ZONE_NAME}-usr-hdp:/usr/hdp
+      - fusion-${ZONE_NAME}-restart:/restart
       ${LICENSE_FILE_PATH}
 
   # Fusion IHC Server

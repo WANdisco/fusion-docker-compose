@@ -69,6 +69,6 @@ volumes:
   # h2db database for UI Server
   fusion-oneui-h2db:
 
-  # Used for restarting fusion and ihc servers
+  # Used for restarting fusion-server, fusion-ui-server and ihc servers
   fusion-${ZONE_A_NAME}-restart:
   fusion-${ZONE_B_NAME}-restart:

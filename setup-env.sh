@@ -248,7 +248,7 @@ if [ -z "$RUN_IN_CONTAINER" ]; then
     -v "$(pwd):$(pwd)" -w "$(pwd)" \
     -e RLWRAP_HOME=$(pwd) \
     -e RUN_IN_CONTAINER=true \
-    wandisco/setup-env:0.1 rlwrap ./setup-env.sh "$@"
+    wandisco/setup-env:0.2 rlwrap ./setup-env.sh "$@"
   exit $?
 fi
 
@@ -453,6 +453,7 @@ fi
 
   # write the .env file
   save_var COMPOSE_FILE "$COMPOSE_FILE" .env
+  save_var COMPOSE_PROJECT_NAME "$COMPOSE_PROJECT_NAME" .env
 
   # instructions for the end user
   echo "The docker-compose environment is configured and ready to start. If you need to change these settings run:"
