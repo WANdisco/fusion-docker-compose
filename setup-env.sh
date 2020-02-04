@@ -295,6 +295,35 @@ fi
   ## load existing common variables
   [ -f "./${COMMON_ENV}" ] && load_file "./${COMMON_ENV}"
 
+  update_var USE_SANDBOX "Do you want to use the HDP sandbox (y/n)" "${USE_SANDBOX}" validate_not_empty
+
+  case $USE_SANDBOX in
+    y|Y)
+      save_var USE_SANDBOX "y" "$SAVE_ENV"
+      save_var ZONE_A_TYPE "hdp" "$SAVE_ENV"
+      save_var ZONE_A_NAME "sandbox-hdp" "$SAVE_ENV"
+      save_var ZONE_B_TYPE "adls2" "$SAVE_ENV"
+      save_var ZONE_B_NAME "adls2" "$SAVE_ENV"
+      save_var LICENSE_FILE "TRIAL" "$SAVE_ENV"
+      save_var DOCKER_HOSTNAME "sandbox-hdp" "$SAVE_ENV"
+
+      save_var HDP_VERSION "2.6.5" "$ZONE_A_ENV"
+      save_var HADOOP_NAME_NODE_HOSTNAME "sandbox-hdp" "$ZONE_A_ENV"
+      save_var HADOOP_NAME_NODE_PORT "8020" "$ZONE_A_ENV"
+      save_var NAME_NODE_PROXY_HOSTNAME "sandbox-hdp" "$ZONE_A_ENV" 
+      save_var FUSION_NAME_NODE_SERVICE_NAME "$NAME_NODE_PROXY_HOSTNAME:8020" "$ZONE_A_ENV"
+      save_var ZONE_A_PLUGIN "livehive" "$ZONE_A_ENV"
+      save_var HIVE_METASTORE_HOSTNAME "sandbox-hdp" "$ZONE_A_ENV"
+      save_var HIVE_METASTORE_PORT "9083" "$ZONE_A_ENV"
+
+      save_var HDI_VERSION "3.6" "$ZONE_B_ENV"
+      save_var ZONE_B_PLUGIN "NONE" "$ZONE_B_ENV"
+    ;;
+    *)
+      save_var USE_SANDBOX "n" "$SAVE_ENV"
+    ;;
+  esac
+
   ## set variables for compose zone a
 
   validate_zone_type "$ZONE_A_TYPE"
@@ -418,6 +447,9 @@ fi
   if [ "$ZONE_B_TYPE" != "NONE" -a "$ZONE_B_PLUGIN" != "NONE" ]; then
     COMPOSE_FILE="${COMPOSE_FILE}:${COMPOSE_FILE_B_PLUGIN_OUT}"
   fi
+  if [ "$USE_SANDBOX" = "y" ]; then
+    COMPOSE_FILE="${COMPOSE_FILE}:docker-compose.sandbox-hdp.yml"
+  fi
 
   # write the .env file
   save_var COMPOSE_FILE "$COMPOSE_FILE" .env
@@ -428,6 +460,19 @@ fi
   echo "  ./setup-env.sh -a"
   echo "To start Fusion run the command:"
   echo "  docker-compose up -d"
+
+
+  if [ "$USE_SANDBOX" = "y" ]; then
+    echo "Once Fusion starts the following interfaces will be available on this host:"
+    echo
+    echo "  Ambari:                   8080"
+    echo "  Fusion (HDP zone):        8083"
+    echo "  Fusion (ADSL Gen2 zone):  8583"
+    echo
+    echo "Please be aware that it may take some time for these ports to be fully available."
+    exit 0
+  fi
+
   echo "Once Fusion starts the UI will be available on:"
   echo "  http://${DOCKER_HOSTNAME}:${ONEUI_SERVER_PORT} or http://ip-address:${ONEUI_SERVER_PORT} using the IP of your docker host."
 )
