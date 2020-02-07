@@ -91,6 +91,7 @@ services:
       - ${FUSION_REPLICATION_PORT}:${FUSION_REPLICATION_PORT}
     environment:
       - DB_ACTION=
+      - CLASSPATH=${CLASSPATH_VALUE}
     env_file:
       - "${ZONE_ENV}"
     volumes:
