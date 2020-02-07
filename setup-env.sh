@@ -284,6 +284,7 @@ fi
 : "${COMPOSE_FILE_A_OUT:=docker-compose.zone-a.yml}"
 : "${COMPOSE_FILE_A_PLUGIN_OUT:=docker-compose.zone-a-plugin.yml}"
 : "${COMPOSE_FILE_B_OUT:=docker-compose.zone-b.yml}"
+: "${COMPOSE_FILE_INDUCT_OUT:=docker-compose.induction.yml}"
 : "${COMPOSE_FILE_B_PLUGIN_OUT:=docker-compose.zone-b-plugin.yml}"
 : "${COMPOSE_FILE_COMMON_OUT:=docker-compose.common.yml}"
 
@@ -417,6 +418,7 @@ fi
       envsubst <"docker-compose.plugin-tmpl-${ZONE_PLUGIN}.yml" >"${COMPOSE_FILE_B_PLUGIN_OUT}"
     fi
     envsubst <"docker-compose.zone-tmpl-${ZONE_TYPE}.yml" >"${COMPOSE_FILE_B_OUT}"
+    envsubst <"docker-compose.induction-tmpl.yml" >"${COMPOSE_FILE_INDUCT_OUT}"
     set +a
   fi; )
 
@@ -439,7 +441,7 @@ fi
   # set compose variables
   COMPOSE_FILE="${COMPOSE_FILE_COMMON_OUT}:${COMPOSE_FILE_A_OUT}"
   if [ "$ZONE_B_TYPE" != "NONE" ]; then
-    COMPOSE_FILE="${COMPOSE_FILE}:${COMPOSE_FILE_B_OUT}"
+    COMPOSE_FILE="${COMPOSE_FILE}:${COMPOSE_FILE_B_OUT}:${COMPOSE_FILE_INDUCT_OUT}"
   fi
   if [ "$ZONE_A_PLUGIN" != "NONE" ]; then
     COMPOSE_FILE="${COMPOSE_FILE}:${COMPOSE_FILE_A_PLUGIN_OUT}"

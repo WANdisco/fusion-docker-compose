@@ -27,19 +27,6 @@ services:
     networks:
       - fusion
 
-  # This service performs the induction process as a Docker container job at launch.
-  induction:
-    image: wandisco/fusion-server-${PLATFORM}:${FUSION_BASE_VERSION}-${FUSION_IMAGE_RELEASE}
-    networks:
-      - fusion
-    environment:
-      - INDUCTOR=fusion-server-${ZONE_A_NAME}
-      - INDUCTEE=fusion-server-${ZONE_B_NAME}
-      - INDUCTOR_PORT=${ZONE_A_SERVER_PORT}
-      - INDUCTEE_PORT=${ZONE_B_SERVER_PORT}
-      - INDUCTEE_REPLICATION_PORT=${ZONE_B_REPLICATION_PORT}
-    command: /scripts/induction.sh
-
 # This service creates the One UI Server component to manage both zones.
 #
 # Note: this component can be run in either zone, so one is chosen arbitrarily
