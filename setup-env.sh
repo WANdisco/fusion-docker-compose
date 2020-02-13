@@ -464,9 +464,8 @@ fi
   if [ "$USE_SANDBOX" = "y" ]; then
     echo "Once Fusion starts the following interfaces will be available on this host:"
     echo
-    echo "  Ambari:                   8080"
-    echo "  Fusion (HDP zone):        8083"
-    echo "  Fusion (ADSL Gen2 zone):  8583"
+    echo "  Ambari: 8080"
+    echo "  OneUI:  ${ONEUI_SERVER_PORT}"
     echo
     echo "Please be aware that it may take some time for these ports to be fully available."
   else
