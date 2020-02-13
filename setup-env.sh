@@ -456,6 +456,7 @@ fi
   # write the .env file
   save_var COMPOSE_FILE "$COMPOSE_FILE" .env
   save_var COMPOSE_PROJECT_NAME "$COMPOSE_PROJECT_NAME" .env
+  save_var COMPOSE_HTTP_TIMEOUT 600 .env
 
   # instructions for the end user
   echo "The docker-compose environment is configured and ready to start. If you need to change these settings run:"
