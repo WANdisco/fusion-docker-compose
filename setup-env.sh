@@ -146,6 +146,18 @@ validate_not_empty() {
   return 0
 }
 
+validate_yn() {
+  local value="$1"
+  case "$value" in
+    y|Y) return 0 ;;
+    n|N) return 0 ;;
+    *)
+      echo "Please enter 'y' or 'n'"
+      return 1
+    ;;
+  esac
+}
+
 validate_not_example() {
   value="$1"
   case "$value" in
@@ -296,7 +308,7 @@ fi
   ## load existing common variables
   [ -f "./${COMMON_ENV}" ] && load_file "./${COMMON_ENV}"
 
-  update_var USE_SANDBOX "Install WANdisco Fusion with a pre-configured Hortonworks Docker Sandbox (for use with Azure ADLS Gen 2)?" "${USE_SANDBOX}" validate_not_empty
+  update_var USE_SANDBOX "Install Pre-configured Hortonworks Sandbox for Databricks Demo (Requires ADLS Gen 2 account)? (Y/n)" "${USE_SANDBOX}" validate_yn
 
   case $USE_SANDBOX in
     y|Y)
