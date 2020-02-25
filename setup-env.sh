@@ -308,7 +308,7 @@ fi
   ## load existing common variables
   [ -f "./${COMMON_ENV}" ] && load_file "./${COMMON_ENV}"
 
-  update_var USE_SANDBOX "Install WANdisco Fusion with a pre-configured Hortonworks Docker Sandbox (for use with Azure ADLS Gen 2) (y/n)?" "${USE_SANDBOX}" validate_yn
+  update_var USE_SANDBOX "Install Pre-configured Hortonworks Sandbox for Databricks Demo (Requires ADLS Gen 2 account)? (Y/n)" "${USE_SANDBOX}" validate_yn
 
   case $USE_SANDBOX in
     y|Y)
