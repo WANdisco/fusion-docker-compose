@@ -20,8 +20,6 @@ services:
     image: wandisco/sandbox-hdp:2.15.1.2-3
     privileged: true
     command: ["/sbin/init"]
-    depends_on:
-      - fusion-ui-server-sandbox-hdp
     ports:
       - "8080:8080"
       - "50070:50070"
@@ -34,3 +32,7 @@ services:
       nofile:
         soft: 170000
         hard: 190000
+
+  fusion-server-sandbox-hdp:
+    depends_on:
+      - sandbox-hdp
