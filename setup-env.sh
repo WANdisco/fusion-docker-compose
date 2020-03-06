@@ -330,7 +330,7 @@ fi
       save_var HIVE_METASTORE_PORT "9083" "$ZONE_A_ENV"
 
       save_var HDI_VERSION "3.6" "$ZONE_B_ENV"
-      save_var ZONE_B_PLUGIN "NONE" "$ZONE_B_ENV"
+      save_var ZONE_B_PLUGIN "databricks" "$ZONE_B_ENV"
     ;;
     *)
       save_var USE_SANDBOX "n" "$SAVE_ENV"
@@ -380,6 +380,7 @@ fi
     save_var FUSION_NODE_ID "$FUSION_NODE_ID" "$SAVE_ENV"
     save_var FUSION_SERVER_HOST "fusion-server-$ZONE_NAME" "$ZONE_ENV"
     save_var IHC_SERVER_HOST "fusion-ihc-server-$ZONE_NAME" "$ZONE_ENV"
+    COMPOSE_ZONE_A="${COMPOSE_FILE_A_OUT}"
 
     # load any existing zone environment
     [ -f "${ZONE_ENV}" ] && load_file "./${ZONE_ENV}"
@@ -393,12 +394,17 @@ fi
     # configure plugins
     update_var ZONE_A_PLUGIN "Select plugin for ${ZONE_NAME} (livehive, or NONE to skip)" "NONE" validate_plugin
     ZONE_PLUGIN=${ZONE_A_PLUGIN}
+    save_var ZONE_PLUGIN "$ZONE_PLUGIN" "$ZONE_ENV"
     if [ "$ZONE_A_PLUGIN" != "NONE" ]; then
-      . "./plugin-${ZONE_PLUGIN}.conf"
-      [ -f "${ZONE_ENV}" ] && load_file "./${ZONE_ENV}"
-      envsubst <"docker-compose.plugin-tmpl-${ZONE_PLUGIN}.yml" >"${COMPOSE_FILE_A_PLUGIN_OUT}"
+      [ -f "./plugin-${ZONE_PLUGIN}.conf" ] && . "./plugin-${ZONE_PLUGIN}.conf"
+      if [ -f "docker-compose.plugin-tmpl-${ZONE_PLUGIN}.yml" ]; then
+        [ -f "${ZONE_ENV}" ] && load_file "./${ZONE_ENV}"
+        envsubst <"docker-compose.plugin-tmpl-${ZONE_PLUGIN}.yml" >"${COMPOSE_FILE_A_PLUGIN_OUT}"
+        COMPOSE_ZONE_A="${COMPOSE_ZONE_A}:${COMPOSE_FILE_A_PLUGIN_OUT}"
+      fi
     fi
     envsubst <"docker-compose.zone-tmpl-${ZONE_TYPE}.yml" >"${COMPOSE_FILE_A_OUT}"
+    save_var COMPOSE_ZONE_A "${COMPOSE_ZONE_A}" "${COMMON_ENV}"
     set +a
   )
 
@@ -419,6 +425,7 @@ fi
     save_var FUSION_NODE_ID "$FUSION_NODE_ID" "$SAVE_ENV"
     save_var FUSION_SERVER_HOST "fusion-server-$ZONE_NAME" "$ZONE_ENV"
     save_var IHC_SERVER_HOST "fusion-ihc-server-$ZONE_NAME" "$ZONE_ENV"
+    COMPOSE_ZONE_B="${COMPOSE_FILE_B_OUT}"
 
     # load any existing zone environment
     [ -f "${ZONE_ENV}" ] && load_file "./${ZONE_ENV}"
@@ -432,13 +439,18 @@ fi
     # configure plugins
     update_var ZONE_B_PLUGIN "Select plugin for ${ZONE_NAME} (livehive, or NONE to skip)" "NONE" validate_plugin
     ZONE_PLUGIN=${ZONE_B_PLUGIN}
+    save_var ZONE_PLUGIN "$ZONE_PLUGIN" "$ZONE_ENV"
     if [ "$ZONE_B_PLUGIN" != "NONE" ]; then
-      . "./plugin-${ZONE_PLUGIN}.conf"
-      [ -f "${ZONE_ENV}" ] && load_file "./${ZONE_ENV}"
-      envsubst <"docker-compose.plugin-tmpl-${ZONE_PLUGIN}.yml" >"${COMPOSE_FILE_B_PLUGIN_OUT}"
+      [ -f "./plugin-${ZONE_PLUGIN}.conf" ] && . "./plugin-${ZONE_PLUGIN}.conf"
+      if [ -f "docker-compose.plugin-tmpl-${ZONE_PLUGIN}.yml" ]; then
+        [ -f "${ZONE_ENV}" ] && load_file "./${ZONE_ENV}"
+        envsubst <"docker-compose.plugin-tmpl-${ZONE_PLUGIN}.yml" >"${COMPOSE_FILE_B_PLUGIN_OUT}"
+        COMPOSE_ZONE_B="${COMPOSE_ZONE_B}:${COMPOSE_FILE_B_PLUGIN_OUT}"
+      fi
     fi
     envsubst <"docker-compose.zone-tmpl-${ZONE_TYPE}.yml" >"${COMPOSE_FILE_B_OUT}"
     envsubst <"docker-compose.induction-tmpl.yml" >"${COMPOSE_FILE_INDUCT_OUT}"
+    save_var COMPOSE_ZONE_B ":${COMPOSE_ZONE_B}:${COMPOSE_FILE_INDUCT_OUT}" "${COMMON_ENV}"
     set +a
   fi; )
 
@@ -459,16 +471,7 @@ fi
   set +a
 
   # set compose variables
-  COMPOSE_FILE="${COMPOSE_FILE_COMMON_OUT}:${COMPOSE_FILE_A_OUT}"
-  if [ "$ZONE_B_TYPE" != "NONE" ]; then
-    COMPOSE_FILE="${COMPOSE_FILE}:${COMPOSE_FILE_B_OUT}:${COMPOSE_FILE_INDUCT_OUT}"
-  fi
-  if [ "$ZONE_A_PLUGIN" != "NONE" ]; then
-    COMPOSE_FILE="${COMPOSE_FILE}:${COMPOSE_FILE_A_PLUGIN_OUT}"
-  fi
-  if [ "$ZONE_B_TYPE" != "NONE" -a "$ZONE_B_PLUGIN" != "NONE" ]; then
-    COMPOSE_FILE="${COMPOSE_FILE}:${COMPOSE_FILE_B_PLUGIN_OUT}"
-  fi
+  COMPOSE_FILE="${COMPOSE_FILE_COMMON_OUT}:${COMPOSE_ZONE_A}${COMPOSE_ZONE_B}"
   if [ "$USE_SANDBOX" = "y" ]; then
     COMPOSE_FILE="${COMPOSE_FILE}:docker-compose.sandbox-hdp.yml"
   fi
