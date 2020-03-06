@@ -236,10 +236,10 @@ validate_demo_type() {
   # for anything not matched by the above case, validation failed
   echo "Please choose from one of the following demo types:"
   cat <<EOZONE
-1. Sandbox-hdp with Adls2 and Live hive / Databricks integration
-2. Sandbox-hdp with S3 Backend
-3. Sandbox-hdp with Custom Backend
-4. Custom Backend
+1. Hortonworks Sandbox with ADLS Gen2, Live Hive and Databricks integration
+2. Hortonworks Sandbox with AWS S3 Backend
+3. Hortonworks Sandbox with Custom Backend
+4. Custom
 EOZONE
   return 1
 }
@@ -327,7 +327,7 @@ fi
   ## load existing common variables
   [ -f "./${COMMON_ENV}" ] && load_file "./${COMMON_ENV}"
 
-  update_var DEMO_TYPE "Select the demonstration you'd like to use" "${DEMO_TYPE}" validate_demo_type
+  update_var DEMO_TYPE "Select the demonstration you would like to use" "${DEMO_TYPE}" validate_demo_type
 
   case $DEMO_TYPE in
     1|2|3)
