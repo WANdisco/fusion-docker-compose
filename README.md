@@ -83,6 +83,12 @@ ssh -i cdh-key.pem -p 2022 root@docker_host
 
 This ssh instance only makes selected files available to the fusion server via the /etc/sshd_exports volume mount. Any other changes are isolated to the container.
 
+## HDP Sandbox to ADLS Gen2 with Databricks
+
+There is also the option to create a sandboxed Hortonworks HDP cluster preconfigured to replicate Hive data in to Azure Databricks.
+
+Full documentation for this option can be found in our [Quickstart Guide](https://wandisco.github.io/wandisco-documentation/docs/quickstarts/hdp_sandbox_lhv_client-adlsg2_lan)
+
 ## License
 This repository is Apache 2.0 licensed. Please see `./LICENSE` for more information.
 

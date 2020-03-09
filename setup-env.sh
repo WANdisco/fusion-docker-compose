@@ -146,6 +146,18 @@ validate_not_empty() {
   return 0
 }
 
+validate_yn() {
+  local value="$1"
+  case "$value" in
+    y|Y) return 0 ;;
+    n|N) return 0 ;;
+    *)
+      echo "Please enter 'y' or 'n'"
+      return 1
+    ;;
+  esac
+}
+
 validate_not_example() {
   value="$1"
   case "$value" in
@@ -284,6 +296,7 @@ fi
 : "${COMPOSE_FILE_A_OUT:=docker-compose.zone-a.yml}"
 : "${COMPOSE_FILE_A_PLUGIN_OUT:=docker-compose.zone-a-plugin.yml}"
 : "${COMPOSE_FILE_B_OUT:=docker-compose.zone-b.yml}"
+: "${COMPOSE_FILE_INDUCT_OUT:=docker-compose.induction.yml}"
 : "${COMPOSE_FILE_B_PLUGIN_OUT:=docker-compose.zone-b-plugin.yml}"
 : "${COMPOSE_FILE_COMMON_OUT:=docker-compose.common.yml}"
 
@@ -295,7 +308,7 @@ fi
   ## load existing common variables
   [ -f "./${COMMON_ENV}" ] && load_file "./${COMMON_ENV}"
 
-  update_var USE_SANDBOX "Do you want to use the HDP sandbox (y/n)" "${USE_SANDBOX}" validate_not_empty
+  update_var USE_SANDBOX "Install Pre-configured Hortonworks Sandbox for Databricks Demo (Requires ADLS Gen 2 account)? (Y/n)" "${USE_SANDBOX}" validate_yn
 
   case $USE_SANDBOX in
     y|Y)
@@ -310,7 +323,7 @@ fi
       save_var HDP_VERSION "2.6.5" "$ZONE_A_ENV"
       save_var HADOOP_NAME_NODE_HOSTNAME "sandbox-hdp" "$ZONE_A_ENV"
       save_var HADOOP_NAME_NODE_PORT "8020" "$ZONE_A_ENV"
-      save_var NAME_NODE_PROXY_HOSTNAME "sandbox-hdp" "$ZONE_A_ENV" 
+      save_var NAME_NODE_PROXY_HOSTNAME "sandbox-hdp" "$ZONE_A_ENV"
       save_var FUSION_NAME_NODE_SERVICE_NAME "$NAME_NODE_PROXY_HOSTNAME:8020" "$ZONE_A_ENV"
       save_var ZONE_A_PLUGIN "livehive" "$ZONE_A_ENV"
       save_var HIVE_METASTORE_HOSTNAME "sandbox-hdp" "$ZONE_A_ENV"
@@ -342,11 +355,13 @@ fi
   # run the common conf
   . "./common.conf"
 
-  if [ -n "${LICENSE_FILE}" -a "${LICENSE_FILE}" != "TRIAL" ]; then
+  if [ "${LICENSE_FILE}" = "TRIAL" ]; then
+    LICENSE_FILE=./fusion-common/license.key
+  elif [ -n "${LICENSE_FILE}" ]; then
     # force the "./" on the filename for relative paths
     LICENSE_FILE="$(dirname ${LICENSE_FILE})/$(basename ${LICENSE_FILE})"
-    export LICENSE_FILE_PATH="- ${LICENSE_FILE}:/etc/wandisco/fusion/server/license.key"
   fi
+  export LICENSE_FILE_PATH="- ${LICENSE_FILE}:/etc/wandisco/fusion/server/license.key"
 
   ## run zone a setup (use a subshell to avoid leaking env vars)
   (
@@ -417,6 +432,7 @@ fi
       envsubst <"docker-compose.plugin-tmpl-${ZONE_PLUGIN}.yml" >"${COMPOSE_FILE_B_PLUGIN_OUT}"
     fi
     envsubst <"docker-compose.zone-tmpl-${ZONE_TYPE}.yml" >"${COMPOSE_FILE_B_OUT}"
+    envsubst <"docker-compose.induction-tmpl.yml" >"${COMPOSE_FILE_INDUCT_OUT}"
     set +a
   fi; )
 
@@ -439,7 +455,7 @@ fi
   # set compose variables
   COMPOSE_FILE="${COMPOSE_FILE_COMMON_OUT}:${COMPOSE_FILE_A_OUT}"
   if [ "$ZONE_B_TYPE" != "NONE" ]; then
-    COMPOSE_FILE="${COMPOSE_FILE}:${COMPOSE_FILE_B_OUT}"
+    COMPOSE_FILE="${COMPOSE_FILE}:${COMPOSE_FILE_B_OUT}:${COMPOSE_FILE_INDUCT_OUT}"
   fi
   if [ "$ZONE_A_PLUGIN" != "NONE" ]; then
     COMPOSE_FILE="${COMPOSE_FILE}:${COMPOSE_FILE_A_PLUGIN_OUT}"
@@ -454,26 +470,26 @@ fi
   # write the .env file
   save_var COMPOSE_FILE "$COMPOSE_FILE" .env
   save_var COMPOSE_PROJECT_NAME "$COMPOSE_PROJECT_NAME" .env
+  save_var COMPOSE_HTTP_TIMEOUT 600 .env
 
   # instructions for the end user
   echo "The docker-compose environment is configured and ready to start. If you need to change these settings run:"
   echo "  ./setup-env.sh -a"
-  echo "To start Fusion run the command:"
-  echo "  docker-compose up -d"
-
 
   if [ "$USE_SANDBOX" = "y" ]; then
     echo "Once Fusion starts the following interfaces will be available on this host:"
     echo
-    echo "  Ambari:                   8080"
-    echo "  Fusion (HDP zone):        8083"
-    echo "  Fusion (ADSL Gen2 zone):  8583"
+    echo "  Ambari: 8080"
+    echo "  OneUI:  ${ONEUI_SERVER_PORT}"
     echo
     echo "Please be aware that it may take some time for these ports to be fully available."
-    exit 0
+  else
+    echo "Once Fusion starts the UI will be available on:"
+    echo "  http://${DOCKER_HOSTNAME}:${ONEUI_SERVER_PORT} or http://ip-address:${ONEUI_SERVER_PORT} using the IP of your docker host."
   fi
 
-  echo "Once Fusion starts the UI will be available on:"
-  echo "  http://${DOCKER_HOSTNAME}:${ONEUI_SERVER_PORT} or http://ip-address:${ONEUI_SERVER_PORT} using the IP of your docker host."
+  echo
+  echo "To start Fusion run the command:"
+  echo "  docker-compose up -d"
 )
 
