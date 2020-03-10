@@ -380,7 +380,6 @@ fi
     save_var FUSION_NODE_ID "$FUSION_NODE_ID" "$SAVE_ENV"
     save_var FUSION_SERVER_HOST "fusion-server-$ZONE_NAME" "$ZONE_ENV"
     save_var IHC_SERVER_HOST "fusion-ihc-server-$ZONE_NAME" "$ZONE_ENV"
-    COMPOSE_ZONE_A="${COMPOSE_FILE_A_OUT}"
 
     # load any existing zone environment
     [ -f "${ZONE_ENV}" ] && load_file "./${ZONE_ENV}"
@@ -391,6 +390,7 @@ fi
     # re-load variables
     [ -f "./${COMMON_ENV}" ] && load_file "./${COMMON_ENV}"
     [ -f "${ZONE_ENV}" ] && load_file "./${ZONE_ENV}"
+    COMPOSE_ZONE_A="${COMPOSE_FILE_A_OUT}"
     # configure plugins
     update_var ZONE_A_PLUGIN "Select plugin for ${ZONE_NAME} (livehive, or NONE to skip)" "NONE" validate_plugin
     ZONE_PLUGIN=${ZONE_A_PLUGIN}
@@ -425,7 +425,6 @@ fi
     save_var FUSION_NODE_ID "$FUSION_NODE_ID" "$SAVE_ENV"
     save_var FUSION_SERVER_HOST "fusion-server-$ZONE_NAME" "$ZONE_ENV"
     save_var IHC_SERVER_HOST "fusion-ihc-server-$ZONE_NAME" "$ZONE_ENV"
-    COMPOSE_ZONE_B="${COMPOSE_FILE_B_OUT}"
 
     # load any existing zone environment
     [ -f "${ZONE_ENV}" ] && load_file "./${ZONE_ENV}"
@@ -436,6 +435,7 @@ fi
     # re-load variables
     [ -f "./${COMMON_ENV}" ] && load_file "./${COMMON_ENV}"
     [ -f "${ZONE_ENV}" ] && load_file "./${ZONE_ENV}"
+    COMPOSE_ZONE_B="${COMPOSE_FILE_B_OUT}"
     # configure plugins
     update_var ZONE_B_PLUGIN "Select plugin for ${ZONE_NAME} (livehive, or NONE to skip)" "NONE" validate_plugin
     ZONE_PLUGIN=${ZONE_B_PLUGIN}
