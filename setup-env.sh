@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 MINIMUM_DOCKER_VERSION="18.09.7"
 MINIMUM_DOCKER_COMPOSE_VERSION="1.24.1"
@@ -225,6 +225,28 @@ validate_zone_name_uniq() {
   return 0
 }
 
+validate_deployment_type() {
+  deployment_type="$1"
+  case "$deployment_type" in
+    1)     return 0;;
+    2)     return 0;;
+    3)     return 0;;
+    4)     return 0;;
+  esac
+  # for anything not matched by the above case, validation failed
+  cat <<EOZONE
+  
+Please choose from one of the following WANdisco Fusion deployment options:
+
+  1. Hortonworks Sandbox with ADLS Gen2, Live Hive and Databricks integration
+  2. Hortonworks Sandbox with AWS S3
+  3. Hortonworks Sandbox with custom distribution
+  4. Custom deployment
+
+EOZONE
+  return 1
+}
+
 validate_zone_type() {
   zone_type="$1"
 
@@ -260,7 +282,7 @@ if [ -z "$RUN_IN_CONTAINER" ]; then
     -v "$(pwd):$(pwd)" -w "$(pwd)" \
     -e RLWRAP_HOME=$(pwd) \
     -e RUN_IN_CONTAINER=true \
-    wandisco/setup-env:0.2 rlwrap ./setup-env.sh "$@"
+    wandisco/setup-env:0.3 rlwrap ./setup-env.sh "$@"
   exit $?
 fi
 
@@ -308,18 +330,30 @@ fi
   ## load existing common variables
   [ -f "./${COMMON_ENV}" ] && load_file "./${COMMON_ENV}"
 
-  update_var USE_SANDBOX "Install Pre-configured Hortonworks Sandbox for Databricks Demo (Requires ADLS Gen 2 account)? (Y/n)" "${USE_SANDBOX}" validate_yn
+  if [[ -z "$DEPLOYMENT_TYPE" && -n "$USE_SANDBOX" ]]; then
+    case $USE_SANDBOX in
+      y|Y)
+        DEPLOYMENT_TYPE="1"
+      ;;
+      n|N)
+        DEPLOYMENT_TYPE="4"
+      ;;
+    esac
+  fi
 
-  case $USE_SANDBOX in
-    y|Y)
+  validate_deployment_type "$DEPLOYMENT_TYPE"
+  update_var DEPLOYMENT_TYPE "Select the deployment you would like to use" "1" validate_deployment_type
+
+  case $DEPLOYMENT_TYPE in
+    *)
+      save_var DEPLOYMENT_TYPE "${DEPLOYMENT_TYPE}" "$SAVE_ENV"
+    ;;&
+    1|2|3)
       save_var USE_SANDBOX "y" "$SAVE_ENV"
       save_var ZONE_A_TYPE "hdp" "$SAVE_ENV"
       save_var ZONE_A_NAME "sandbox-hdp" "$SAVE_ENV"
-      save_var ZONE_B_TYPE "adls2" "$SAVE_ENV"
-      save_var ZONE_B_NAME "adls2" "$SAVE_ENV"
       save_var LICENSE_FILE "TRIAL" "$SAVE_ENV"
       save_var DOCKER_HOSTNAME "sandbox-hdp" "$SAVE_ENV"
-
       save_var HDP_VERSION "2.6.5" "$ZONE_A_ENV"
       save_var HADOOP_NAME_NODE_HOSTNAME "sandbox-hdp" "$ZONE_A_ENV"
       save_var HADOOP_NAME_NODE_PORT "8020" "$ZONE_A_ENV"
@@ -328,11 +362,20 @@ fi
       save_var ZONE_A_PLUGIN "livehive" "$ZONE_A_ENV"
       save_var HIVE_METASTORE_HOSTNAME "sandbox-hdp" "$ZONE_A_ENV"
       save_var HIVE_METASTORE_PORT "9083" "$ZONE_A_ENV"
-
+    ;;&
+    1)
+      save_var ZONE_B_TYPE "adls2" "$SAVE_ENV"
+      save_var ZONE_B_NAME "adls2" "$SAVE_ENV"
       save_var HDI_VERSION "3.6" "$ZONE_B_ENV"
       save_var ZONE_B_PLUGIN "databricks" "$ZONE_B_ENV"
     ;;
-    *)
+    2)
+      save_var ZONE_B_TYPE "s3" "$SAVE_ENV"
+      save_var ZONE_B_NAME "s3" "$SAVE_ENV"
+      save_var S3_BUFFER_DIR "/tmp" "$ZONE_B_ENV"
+      save_var ZONE_B_PLUGIN "NONE" "$ZONE_B_ENV"
+    ;;
+    4)
       save_var USE_SANDBOX "n" "$SAVE_ENV"
     ;;
   esac
@@ -501,4 +544,3 @@ fi
   echo "To start Fusion run the command:"
   echo "  docker-compose up -d"
 )
-
