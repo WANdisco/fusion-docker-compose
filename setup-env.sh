@@ -235,12 +235,12 @@ validate_deployment_type() {
   esac
   # for anything not matched by the above case, validation failed
   cat <<EOZONE
-  
+
 Please choose from one of the following WANdisco Fusion deployment options:
 
-  1. Hortonworks Sandbox with ADLS Gen2, Live Hive and Databricks integration
-  2. Hortonworks Sandbox with AWS S3
-  3. Hortonworks Sandbox with custom distribution
+  1. Hortonworks Sandbox to ADLS Gen2, Live Hive and Databricks integration
+  2. Hortonworks Sandbox to AWS S3
+  3. Hortonworks Sandbox to custom distribution
   4. Custom deployment
 
 EOZONE
@@ -258,15 +258,18 @@ validate_zone_type() {
     alibaba-emr)     return 0;;
   esac
   # for anything not matched by the above case, validation failed
-  echo "Please choose from one of the following zone types:"
   cat <<EOZONE
-adls1:       Azure Data Lake Storage Gen1
-adls2:       Azure Data Lake Storage Gen2
-s3:          AWS S3 Unmanaged
-hcfs-emr:    AWS HCFS EMR
-cdh:         Cloudera Hadoop
-hdp:         Hortonworks Hadoop
-alibaba-emr: Alibaba EMR
+
+Please choose from one of the following zone types:
+
+  adls1:       Azure Data Lake Storage Gen1
+  adls2:       Azure Data Lake Storage Gen2
+  s3:          AWS S3 Unmanaged
+  hcfs-emr:    AWS HCFS EMR
+  cdh:         Cloudera Hadoop
+  hdp:         Hortonworks Hadoop
+  alibaba-emr: Alibaba EMR
+
 EOZONE
   return 1
 }
@@ -388,6 +391,7 @@ fi
 
   ## set variables for compose zone b
 
+  validate_zone_type "$ZONE_B_TYPE"
   update_var ZONE_B_TYPE "Enter the second zone type (or NONE to skip)" "" validate_zone_type
   if [ "$ZONE_B_TYPE" != NONE ]; then
     update_var ZONE_B_NAME "Enter a name for the second zone" "${ZONE_B_TYPE}" validate_zone_name_uniq
