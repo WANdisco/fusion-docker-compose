@@ -260,8 +260,8 @@ validate_zone_type() {
   # for anything not matched by the above case, validation failed
   echo "Please choose from one of the following zone types:"
   cat <<EOZONE
-adls1:       Azure Data Lake Service Gen 1
-adls2:       Azure Data Lake Service Gen 2
+adls1:       Azure Data Lake Storage Gen1
+adls2:       Azure Data Lake Storage Gen2
 s3:          AWS S3 Unmanaged
 hcfs-emr:    AWS HCFS EMR
 cdh:         Cloudera Hadoop
