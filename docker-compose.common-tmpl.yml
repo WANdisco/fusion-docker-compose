@@ -48,6 +48,7 @@ services:
       - fusion-oneui-h2db:/h2db
       - fusion-${ZONE_A_NAME}-restart:/etc/wandisco/fusion/server/${ZONE_A_NAME}
       - fusion-${ZONE_B_NAME}-restart:/etc/wandisco/fusion/server/${ZONE_B_NAME}
+      ${LICENSE_FILE_PATH_ONE_UI}
 
 volumes:
   # Named logging volume
