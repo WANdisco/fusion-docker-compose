@@ -522,6 +522,7 @@ fi
   # set compose variables
   COMPOSE_FILE="${COMPOSE_FILE_COMMON_OUT}:${COMPOSE_ZONE_A}${COMPOSE_ZONE_B}"
   if [ "$USE_SANDBOX" = "y" ]; then
+    save_var ZONE_PLUGIN "${ZONE_A_PLUGIN}" sandbox.env
     COMPOSE_FILE="${COMPOSE_FILE}:docker-compose.sandbox-hdp.yml"
   fi
 
