@@ -20,6 +20,7 @@ services:
     image: wandisco/sandbox-hdp:2.15.1.2-4
     privileged: true
     command: ["/sbin/init"]
+    env_file: sandbox.env
     ports:
       - "8080:8080"
       - "50070:50070"
