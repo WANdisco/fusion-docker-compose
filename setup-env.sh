@@ -278,9 +278,15 @@ EOZONE
 if [ -z "$RUN_IN_CONTAINER" ]; then
   has_docker
   has_docker_compose
+  terminal="-it"
+
+  #Check if FD 0 (standard input) is not a TTY
+  if [ ! -t 0 ]; then
+    terminal=""
+  fi
 
   echo "Getting the latest Fusion Setup image"
-  docker run -it --rm --net host \
+  docker run $terminal --rm --net host \
     -u "$(id -u):$(id -g)" \
     -v "$(pwd):$(pwd)" -w "$(pwd)" \
     -e RLWRAP_HOME=$(pwd) \
