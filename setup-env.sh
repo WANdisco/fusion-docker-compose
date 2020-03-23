@@ -415,6 +415,7 @@ fi
     LICENSE_FILE="$(dirname ${LICENSE_FILE})/$(basename ${LICENSE_FILE})"
   fi
   export LICENSE_FILE_PATH="- ${LICENSE_FILE}:/etc/wandisco/fusion/server/license.key"
+  export LICENSE_FILE_PATH_ONE_UI="- ${LICENSE_FILE}:/etc/wandisco/fusion/server/license/license.key"
 
   ## run zone a setup (use a subshell to avoid leaking env vars)
   (
