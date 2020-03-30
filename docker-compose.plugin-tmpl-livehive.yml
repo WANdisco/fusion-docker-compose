@@ -20,7 +20,7 @@ version: "3.7"
 services:
   debug:
     volumes:
-      - logging-livehive-${ZONE_NAME}:/debug/livehive-${ZONE_NAME}
+      - logging-${ZONE_NAME}:/debug/${ZONE_NAME}
 
   fusion-livehive-proxy-${ZONE_NAME}:
     image: wandisco/fusion-livehive-proxy-${PLATFORM}:${FUSION_LIVEHIVE_VERSION}-${FUSION_LIVEHIVE_IMAGE_RELEASE}
@@ -33,7 +33,7 @@ services:
     ports:
       - ${FUSION_LIVEHIVE_PROXY_PORT}:${FUSION_LIVEHIVE_PROXY_PORT}
     volumes:
-      - logging-livehive-${ZONE_NAME}:/var/log/fusion
+      - logging-${ZONE_NAME}:/var/log/fusion
       - fusion-${ZONE_NAME}-etc-wandisco:/etc/wandisco
       - fusion-${ZONE_NAME}-etc-hadoop:/etc/hadoop
 
@@ -43,7 +43,7 @@ networks:
   fusion:
 
 volumes:
-  logging-livehive-${ZONE_NAME}:
+  logging-${ZONE_NAME}:
   fusion-${ZONE_NAME}-etc-hadoop:
   fusion-${ZONE_NAME}-etc-wandisco:
 
