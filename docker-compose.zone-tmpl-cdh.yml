@@ -30,10 +30,7 @@ services:
     image: ubuntu
     command: ["tail", "-f", "/dev/null"]
     volumes:
-      - logging-server-${ZONE_NAME}:/debug/server-${ZONE_NAME}
-      - logging-ui-server-${ZONE_NAME}:/debug/ui-server-${ZONE_NAME}
-      - logging-ihc-${ZONE_NAME}:/debug/ihc-server-${ZONE_NAME}
-      - logging-npx-${ZONE_NAME}:/debug/npx-${ZONE_NAME}
+      - logging-${ZONE_NAME}:/debug/${ZONE_NAME}
     networks:
       - fusion
 
@@ -50,7 +47,7 @@ services:
     env_file:
       - "${ZONE_ENV}"
     volumes:
-      - logging-npx-${ZONE_NAME}:/var/log/fusion
+      - logging-${ZONE_NAME}:/var/log/fusion
       - fusion-${ZONE_NAME}-etc-wandisco:/etc/wandisco
       - fusion-${ZONE_NAME}-etc-hadoop:/etc/hadoop
 
@@ -68,7 +65,7 @@ services:
     env_file:
       - "${ZONE_ENV}"
     volumes:
-      - logging-ui-server-${ZONE_NAME}:/var/log/fusion
+      - logging-${ZONE_NAME}:/var/log/fusion
       - fusion-${ZONE_NAME}-etc-hadoop:/etc/hadoop
       - fusion-${ZONE_NAME}-etc-shared:/etc/shared
       - fusion-${ZONE_NAME}-etc-wandisco:/etc/wandisco
@@ -93,7 +90,7 @@ services:
     env_file:
       - "${ZONE_ENV}"
     volumes:
-      - logging-ihc-${ZONE_NAME}:/var/log/fusion
+      - logging-${ZONE_NAME}:/var/log/fusion
       - fusion-${ZONE_NAME}-etc-hadoop:/etc/hadoop
       - fusion-${ZONE_NAME}-etc-shared:/etc/shared
       - fusion-${ZONE_NAME}-etc-wandisco:/etc/wandisco
@@ -140,7 +137,7 @@ services:
     env_file:
       - "${ZONE_ENV}"
     volumes:
-      - logging-server-${ZONE_NAME}:/var/log/fusion
+      - logging-${ZONE_NAME}:/var/log/fusion
       - fusion-${ZONE_NAME}-opt-wandisco-fusion-server-checkpoint:/opt/wandisco/fusion/server/checkpoint
       - fusion-${ZONE_NAME}-opt-wandisco-fusion-server-dcone:/opt/wandisco/fusion/server/dcone
       - fusion-${ZONE_NAME}-etc-wandisco:/etc/wandisco
@@ -157,10 +154,7 @@ networks:
 
 volumes:
   # The named logging volumes for all components
-  logging-server-${ZONE_NAME}:
-  logging-ui-server-${ZONE_NAME}:
-  logging-ihc-${ZONE_NAME}:
-  logging-npx-${ZONE_NAME}:
+  logging-${ZONE_NAME}:
 
   # Checkpoint volume (confirm if this is needed to persist across container restarts)
   fusion-${ZONE_NAME}-opt-wandisco-fusion-server-checkpoint:
