@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 MINIMUM_DOCKER_VERSION="18.09.7"
 MINIMUM_DOCKER_COMPOSE_VERSION="1.24.1"
@@ -225,6 +225,28 @@ validate_zone_name_uniq() {
   return 0
 }
 
+validate_deployment_type() {
+  deployment_type="$1"
+  case "$deployment_type" in
+    1)     return 0;;
+    2)     return 0;;
+    3)     return 0;;
+    4)     return 0;;
+  esac
+  # for anything not matched by the above case, validation failed
+  cat <<EOZONE
+
+Please choose from one of the following WANdisco Fusion deployment options:
+
+  1. Hortonworks Sandbox to ADLS Gen2, Live Hive and Databricks integration
+  2. Hortonworks Sandbox to AWS S3
+  3. Hortonworks Sandbox to custom distribution
+  4. Custom deployment
+
+EOZONE
+  return 1
+}
+
 validate_zone_type() {
   zone_type="$1"
 
@@ -236,15 +258,18 @@ validate_zone_type() {
     alibaba-emr)     return 0;;
   esac
   # for anything not matched by the above case, validation failed
-  echo "Please choose from one of the following zone types:"
   cat <<EOZONE
-adls1:       Azure Data Lake Service Gen 1
-adls2:       Azure Data Lake Service Gen 2
-s3:          AWS S3 Unmanaged
-hcfs-emr:    AWS HCFS EMR
-cdh:         Cloudera Hadoop
-hdp:         Hortonworks Hadoop
-alibaba-emr: Alibaba EMR
+
+Please choose from one of the following zone types:
+
+  adls1:       Azure Data Lake Storage Gen1
+  adls2:       Azure Data Lake Storage Gen2
+  s3:          AWS S3 Unmanaged
+  hcfs-emr:    AWS HCFS EMR
+  cdh:         Cloudera Hadoop
+  hdp:         Hortonworks Hadoop
+  alibaba-emr: Alibaba EMR
+
 EOZONE
   return 1
 }
@@ -253,14 +278,20 @@ EOZONE
 if [ -z "$RUN_IN_CONTAINER" ]; then
   has_docker
   has_docker_compose
+  terminal="-it"
+
+  #Check if FD 0 (standard input) is not a TTY
+  if [ ! -t 0 ]; then
+    terminal=""
+  fi
 
   echo "Getting the latest Fusion Setup image"
-  docker run -it --rm --net host \
+  docker run $terminal --rm --net host \
     -u "$(id -u):$(id -g)" \
     -v "$(pwd):$(pwd)" -w "$(pwd)" \
     -e RLWRAP_HOME=$(pwd) \
     -e RUN_IN_CONTAINER=true \
-    wandisco/setup-env:0.2 rlwrap ./setup-env.sh "$@"
+    wandisco/setup-env:0.3 rlwrap ./setup-env.sh "$@"
   exit $?
 fi
 
@@ -308,18 +339,30 @@ fi
   ## load existing common variables
   [ -f "./${COMMON_ENV}" ] && load_file "./${COMMON_ENV}"
 
-  update_var USE_SANDBOX "Install Pre-configured Hortonworks Sandbox for Databricks Demo (Requires ADLS Gen 2 account)? (Y/n)" "${USE_SANDBOX}" validate_yn
+  if [[ -z "$DEPLOYMENT_TYPE" && -n "$USE_SANDBOX" ]]; then
+    case $USE_SANDBOX in
+      y|Y)
+        DEPLOYMENT_TYPE="1"
+      ;;
+      n|N)
+        DEPLOYMENT_TYPE="4"
+      ;;
+    esac
+  fi
 
-  case $USE_SANDBOX in
-    y|Y)
+  validate_deployment_type "$DEPLOYMENT_TYPE"
+  update_var DEPLOYMENT_TYPE "Select the deployment you would like to use" "1" validate_deployment_type
+
+  case $DEPLOYMENT_TYPE in
+    *)
+      save_var DEPLOYMENT_TYPE "${DEPLOYMENT_TYPE}" "$SAVE_ENV"
+    ;;&
+    1|2|3)
       save_var USE_SANDBOX "y" "$SAVE_ENV"
       save_var ZONE_A_TYPE "hdp" "$SAVE_ENV"
       save_var ZONE_A_NAME "sandbox-hdp" "$SAVE_ENV"
-      save_var ZONE_B_TYPE "adls2" "$SAVE_ENV"
-      save_var ZONE_B_NAME "adls2" "$SAVE_ENV"
       save_var LICENSE_FILE "TRIAL" "$SAVE_ENV"
       save_var DOCKER_HOSTNAME "sandbox-hdp" "$SAVE_ENV"
-
       save_var HDP_VERSION "2.6.5" "$ZONE_A_ENV"
       save_var HADOOP_NAME_NODE_HOSTNAME "sandbox-hdp" "$ZONE_A_ENV"
       save_var HADOOP_NAME_NODE_PORT "8020" "$ZONE_A_ENV"
@@ -328,11 +371,20 @@ fi
       save_var ZONE_A_PLUGIN "livehive" "$ZONE_A_ENV"
       save_var HIVE_METASTORE_HOSTNAME "sandbox-hdp" "$ZONE_A_ENV"
       save_var HIVE_METASTORE_PORT "9083" "$ZONE_A_ENV"
-
+    ;;&
+    1)
+      save_var ZONE_B_TYPE "adls2" "$SAVE_ENV"
+      save_var ZONE_B_NAME "adls2" "$SAVE_ENV"
       save_var HDI_VERSION "3.6" "$ZONE_B_ENV"
+      save_var ZONE_B_PLUGIN "databricks" "$ZONE_B_ENV"
+    ;;
+    2)
+      save_var ZONE_B_TYPE "s3" "$SAVE_ENV"
+      save_var ZONE_B_NAME "s3" "$SAVE_ENV"
+      save_var S3_BUFFER_DIR "/tmp" "$ZONE_B_ENV"
       save_var ZONE_B_PLUGIN "NONE" "$ZONE_B_ENV"
     ;;
-    *)
+    4)
       save_var USE_SANDBOX "n" "$SAVE_ENV"
     ;;
   esac
@@ -345,6 +397,7 @@ fi
 
   ## set variables for compose zone b
 
+  validate_zone_type "$ZONE_B_TYPE"
   update_var ZONE_B_TYPE "Enter the second zone type (or NONE to skip)" "" validate_zone_type
   if [ "$ZONE_B_TYPE" != NONE ]; then
     update_var ZONE_B_NAME "Enter a name for the second zone" "${ZONE_B_TYPE}" validate_zone_name_uniq
@@ -379,6 +432,10 @@ fi
     # save common vars to zone file
     save_var ZONE_NAME "$ZONE_NAME" "$SAVE_ENV"
     save_var FUSION_NODE_ID "$FUSION_NODE_ID" "$SAVE_ENV"
+    save_var FUSION_SERVER_HOST "fusion-server-$ZONE_NAME" "$ZONE_ENV"
+    save_var INTERNAL_FUSION_SERVER_HOST "fusion-server-$ZONE_NAME" "$ZONE_ENV"
+    save_var IHC_SERVER_HOST "fusion-ihc-server-$ZONE_NAME" "$ZONE_ENV"
+
     # load any existing zone environment
     [ -f "${ZONE_ENV}" ] && load_file "./${ZONE_ENV}"
     # run the common fusion zone config
@@ -388,15 +445,21 @@ fi
     # re-load variables
     [ -f "./${COMMON_ENV}" ] && load_file "./${COMMON_ENV}"
     [ -f "${ZONE_ENV}" ] && load_file "./${ZONE_ENV}"
+    COMPOSE_ZONE_A="${COMPOSE_FILE_A_OUT}"
     # configure plugins
     update_var ZONE_A_PLUGIN "Select plugin for ${ZONE_NAME} (livehive, or NONE to skip)" "NONE" validate_plugin
     ZONE_PLUGIN=${ZONE_A_PLUGIN}
+    save_var ZONE_PLUGIN "$ZONE_PLUGIN" "$ZONE_ENV"
     if [ "$ZONE_A_PLUGIN" != "NONE" ]; then
-      . "./plugin-${ZONE_PLUGIN}.conf"
-      [ -f "${ZONE_ENV}" ] && load_file "./${ZONE_ENV}"
-      envsubst <"docker-compose.plugin-tmpl-${ZONE_PLUGIN}.yml" >"${COMPOSE_FILE_A_PLUGIN_OUT}"
+      [ -f "./plugin-${ZONE_PLUGIN}.conf" ] && . "./plugin-${ZONE_PLUGIN}.conf"
+      if [ -f "docker-compose.plugin-tmpl-${ZONE_PLUGIN}.yml" ]; then
+        [ -f "${ZONE_ENV}" ] && load_file "./${ZONE_ENV}"
+        envsubst <"docker-compose.plugin-tmpl-${ZONE_PLUGIN}.yml" >"${COMPOSE_FILE_A_PLUGIN_OUT}"
+        COMPOSE_ZONE_A="${COMPOSE_ZONE_A}:${COMPOSE_FILE_A_PLUGIN_OUT}"
+      fi
     fi
     envsubst <"docker-compose.zone-tmpl-${ZONE_TYPE}.yml" >"${COMPOSE_FILE_A_OUT}"
+    save_var COMPOSE_ZONE_A "${COMPOSE_ZONE_A}" "${COMMON_ENV}"
     set +a
   )
 
@@ -415,6 +478,10 @@ fi
     # save common vars to zone file
     save_var ZONE_NAME "$ZONE_NAME" "$SAVE_ENV"
     save_var FUSION_NODE_ID "$FUSION_NODE_ID" "$SAVE_ENV"
+    save_var FUSION_SERVER_HOST "fusion-server-$ZONE_NAME" "$ZONE_ENV"
+    save_var INTERNAL_FUSION_SERVER_HOST "fusion-server-$ZONE_NAME" "$ZONE_ENV"
+    save_var IHC_SERVER_HOST "fusion-ihc-server-$ZONE_NAME" "$ZONE_ENV"
+
     # load any existing zone environment
     [ -f "${ZONE_ENV}" ] && load_file "./${ZONE_ENV}"
     # run the common fusion zone config
@@ -424,16 +491,22 @@ fi
     # re-load variables
     [ -f "./${COMMON_ENV}" ] && load_file "./${COMMON_ENV}"
     [ -f "${ZONE_ENV}" ] && load_file "./${ZONE_ENV}"
+    COMPOSE_ZONE_B="${COMPOSE_FILE_B_OUT}"
     # configure plugins
     update_var ZONE_B_PLUGIN "Select plugin for ${ZONE_NAME} (livehive, or NONE to skip)" "NONE" validate_plugin
     ZONE_PLUGIN=${ZONE_B_PLUGIN}
+    save_var ZONE_PLUGIN "$ZONE_PLUGIN" "$ZONE_ENV"
     if [ "$ZONE_B_PLUGIN" != "NONE" ]; then
-      . "./plugin-${ZONE_PLUGIN}.conf"
-      [ -f "${ZONE_ENV}" ] && load_file "./${ZONE_ENV}"
-      envsubst <"docker-compose.plugin-tmpl-${ZONE_PLUGIN}.yml" >"${COMPOSE_FILE_B_PLUGIN_OUT}"
+      [ -f "./plugin-${ZONE_PLUGIN}.conf" ] && . "./plugin-${ZONE_PLUGIN}.conf"
+      if [ -f "docker-compose.plugin-tmpl-${ZONE_PLUGIN}.yml" ]; then
+        [ -f "${ZONE_ENV}" ] && load_file "./${ZONE_ENV}"
+        envsubst <"docker-compose.plugin-tmpl-${ZONE_PLUGIN}.yml" >"${COMPOSE_FILE_B_PLUGIN_OUT}"
+        COMPOSE_ZONE_B="${COMPOSE_ZONE_B}:${COMPOSE_FILE_B_PLUGIN_OUT}"
+      fi
     fi
     envsubst <"docker-compose.zone-tmpl-${ZONE_TYPE}.yml" >"${COMPOSE_FILE_B_OUT}"
     envsubst <"docker-compose.induction-tmpl.yml" >"${COMPOSE_FILE_INDUCT_OUT}"
+    save_var COMPOSE_ZONE_B ":${COMPOSE_ZONE_B}:${COMPOSE_FILE_INDUCT_OUT}" "${COMMON_ENV}"
     set +a
   fi; )
 
@@ -454,17 +527,9 @@ fi
   set +a
 
   # set compose variables
-  COMPOSE_FILE="${COMPOSE_FILE_COMMON_OUT}:${COMPOSE_FILE_A_OUT}"
-  if [ "$ZONE_B_TYPE" != "NONE" ]; then
-    COMPOSE_FILE="${COMPOSE_FILE}:${COMPOSE_FILE_B_OUT}:${COMPOSE_FILE_INDUCT_OUT}"
-  fi
-  if [ "$ZONE_A_PLUGIN" != "NONE" ]; then
-    COMPOSE_FILE="${COMPOSE_FILE}:${COMPOSE_FILE_A_PLUGIN_OUT}"
-  fi
-  if [ "$ZONE_B_TYPE" != "NONE" -a "$ZONE_B_PLUGIN" != "NONE" ]; then
-    COMPOSE_FILE="${COMPOSE_FILE}:${COMPOSE_FILE_B_PLUGIN_OUT}"
-  fi
+  COMPOSE_FILE="${COMPOSE_FILE_COMMON_OUT}:${COMPOSE_ZONE_A}${COMPOSE_ZONE_B}"
   if [ "$USE_SANDBOX" = "y" ]; then
+    save_var ZONE_PLUGIN "${ZONE_A_PLUGIN}" sandbox.env
     COMPOSE_FILE="${COMPOSE_FILE}:docker-compose.sandbox-hdp.yml"
   fi
 
@@ -493,4 +558,3 @@ fi
   echo "To start Fusion run the command:"
   echo "  docker-compose up -d"
 )
-
