@@ -232,16 +232,20 @@ validate_deployment_type() {
     2)     return 0;;
     3)     return 0;;
     4)     return 0;;
+    5)     return 0;;
+    6)     return 0;;
   esac
   # for anything not matched by the above case, validation failed
   cat <<EOZONE
 
 Please choose from one of the following WANdisco Fusion deployment options:
 
-  1. Hortonworks Sandbox to ADLS Gen2, Live Hive and Databricks integration
-  2. Hortonworks Sandbox to AWS S3
-  3. Hortonworks Sandbox to custom distribution
-  4. Custom deployment
+  1. HDP Sandbox to ADLS Gen2, Live Hive and Databricks integration
+  2. HDP Sandbox to S3
+  3. HDP Sandbox to custom distribution
+  4. ADLS Gen1 to Gen2
+  5. S3 and ADLS Gen2 (bi-directional)
+  6. Custom deployment
 
 EOZONE
   return 1
@@ -362,8 +366,6 @@ fi
       save_var USE_SANDBOX "y" "$SAVE_ENV"
       save_var ZONE_A_TYPE "hdp" "$SAVE_ENV"
       save_var ZONE_A_NAME "sandbox-hdp" "$SAVE_ENV"
-      save_var LICENSE_FILE "TRIAL" "$SAVE_ENV"
-      save_var DOCKER_HOSTNAME "sandbox-hdp" "$SAVE_ENV"
       save_var HDP_VERSION "2.6.5" "$ZONE_A_ENV"
       save_var HADOOP_NAME_NODE_HOSTNAME "sandbox-hdp" "$ZONE_A_ENV"
       save_var HADOOP_NAME_NODE_PORT "8020" "$ZONE_A_ENV"
@@ -373,19 +375,41 @@ fi
       save_var HIVE_METASTORE_HOSTNAME "sandbox-hdp" "$ZONE_A_ENV"
       save_var HIVE_METASTORE_PORT "9083" "$ZONE_A_ENV"
     ;;&
-    1)
+    1|4|5)
       save_var ZONE_B_TYPE "adls2" "$SAVE_ENV"
       save_var ZONE_B_NAME "adls2" "$SAVE_ENV"
       save_var HDI_VERSION "3.6" "$ZONE_B_ENV"
+    ;;&
+    1)
+      save_var DOCKER_HOSTNAME "hdp-adls2" "$SAVE_ENV"
       save_var ZONE_B_PLUGIN "databricks" "$ZONE_B_ENV"
     ;;
     2)
+      save_var DOCKER_HOSTNAME "hdp-s3" "$SAVE_ENV"
       save_var ZONE_B_TYPE "s3" "$SAVE_ENV"
       save_var ZONE_B_NAME "s3" "$SAVE_ENV"
-      save_var S3_BUFFER_DIR "/tmp" "$ZONE_B_ENV"
       save_var ZONE_B_PLUGIN "NONE" "$ZONE_B_ENV"
     ;;
+    3)
+      save_var DOCKER_HOSTNAME "hdp-custom" "$SAVE_ENV"
+    ;;
+    4|5)
+      save_var ZONE_B_PLUGIN "NONE" "$ZONE_B_ENV"
+    ;;&
     4)
+      save_var DOCKER_HOSTNAME "adls1-adls2" "$SAVE_ENV"
+      save_var ZONE_A_TYPE "adls1" "$SAVE_ENV"
+      save_var ZONE_A_NAME "adls1" "$SAVE_ENV"
+      save_var ZONE_A_PLUGIN "NONE" "$ZONE_B_ENV"
+      save_var HDI_VERSION "3.6" "$ZONE_B_ENV"
+    ;;
+    5)
+      save_var DOCKER_HOSTNAME "s3-adls2" "$SAVE_ENV"
+      save_var ZONE_A_TYPE "s3" "$SAVE_ENV"
+      save_var ZONE_A_NAME "s3" "$SAVE_ENV"
+      save_var ZONE_A_PLUGIN "NONE" "$ZONE_B_ENV"
+    ;;
+    6)
       save_var USE_SANDBOX "n" "$SAVE_ENV"
     ;;
   esac
