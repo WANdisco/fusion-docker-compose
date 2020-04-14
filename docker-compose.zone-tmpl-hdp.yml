@@ -74,7 +74,7 @@ services:
       - fusion-${ZONE_NAME}-opt-wandisco-fusion-ui-server-properties:/opt/wandisco/fusion-ui-server/properties
       - fusion-${ZONE_NAME}-usr-hdp:/usr/hdp
       - fusion-${ZONE_NAME}-restart:/restart
-      ${LICENSE_FILE_PATH}
+      - fusion-license:/etc/wandisco/license
 
   # Fusion IHC Server
   fusion-ihc-server-${ZONE_NAME}:
@@ -97,7 +97,7 @@ services:
       - fusion-${ZONE_NAME}-opt-wandisco-fusion-server-checkpoint:/opt/wandisco/fusion/server/checkpoint
       - fusion-${ZONE_NAME}-restart:/restart
       - fusion-${ZONE_NAME}-usr-hdp:/usr/hdp
-      ${LICENSE_FILE_PATH}
+      - fusion-license:/etc/wandisco/license
 
   # sshd
   sshd-${ZONE_NAME}:
@@ -134,6 +134,8 @@ services:
       - ${FUSION_REPLICATION_PORT}:${FUSION_REPLICATION_PORT}
     env_file:
       - "${ZONE_ENV}"
+    depends_on: 
+      - fusion-oneui-server
     volumes:
       - logging-${ZONE_NAME}:/var/log/fusion
       - fusion-${ZONE_NAME}-etc-hadoop:/etc/hadoop
@@ -144,7 +146,7 @@ services:
       - fusion-${ZONE_NAME}-opt-wandisco-fusion-ui-server-properties:/opt/wandisco/fusion-ui-server/properties
       - fusion-${ZONE_NAME}-restart:/restart
       - fusion-${ZONE_NAME}-usr-hdp:/usr/hdp
-      ${LICENSE_FILE_PATH}
+      - fusion-license:/etc/wandisco/license
 
 networks:
   # One Docker network is shared between both zones
