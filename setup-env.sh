@@ -433,15 +433,6 @@ fi
   # run the common conf
   . "./common.conf"
 
-  if [ "${LICENSE_FILE}" = "TRIAL" ]; then
-    LICENSE_FILE=./fusion-common/license.key
-  elif [ -n "${LICENSE_FILE}" ]; then
-    # force the "./" on the filename for relative paths
-    LICENSE_FILE="$(dirname ${LICENSE_FILE})/$(basename ${LICENSE_FILE})"
-  fi
-  export LICENSE_FILE_PATH="- ${LICENSE_FILE}:/etc/wandisco/fusion/server/license.key"
-  export LICENSE_FILE_PATH_ONE_UI="- ${LICENSE_FILE}:/etc/wandisco/fusion/server/license/license.key"
-
   ## run zone a setup (use a subshell to avoid leaking env vars)
   (
     default_port_offset=0

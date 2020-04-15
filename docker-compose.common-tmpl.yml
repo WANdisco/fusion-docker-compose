@@ -48,7 +48,7 @@ services:
       - fusion-oneui-h2db:/h2db
       - fusion-${ZONE_A_NAME}-restart:/etc/wandisco/fusion/server/${ZONE_A_NAME}
       - fusion-${ZONE_B_NAME}-restart:/etc/wandisco/fusion/server/${ZONE_B_NAME}
-      ${LICENSE_FILE_PATH_ONE_UI}
+      - fusion-license:/etc/wandisco/license
 
 volumes:
   # Named logging volume
@@ -60,3 +60,5 @@ volumes:
   # Used for restarting fusion-server, fusion-ui-server and ihc servers
   fusion-${ZONE_A_NAME}-restart:
   fusion-${ZONE_B_NAME}-restart:
+
+  fusion-license:
