@@ -362,7 +362,6 @@ fi
       save_var USE_SANDBOX "y" "$SAVE_ENV"
       save_var ZONE_A_TYPE "hdp" "$SAVE_ENV"
       save_var ZONE_A_NAME "sandbox-hdp" "$SAVE_ENV"
-      save_var LICENSE_FILE "TRIAL" "$SAVE_ENV"
       save_var DOCKER_HOSTNAME "sandbox-hdp" "$SAVE_ENV"
       save_var HDP_VERSION "2.6.5" "$ZONE_A_ENV"
       save_var HADOOP_NAME_NODE_HOSTNAME "sandbox-hdp" "$ZONE_A_ENV"
@@ -408,15 +407,6 @@ fi
   export ZONE_A_ENV ZONE_B_ENV ZONE_A_NAME ZONE_B_NAME
   # run the common conf
   . "./common.conf"
-
-  if [ "${LICENSE_FILE}" = "TRIAL" ]; then
-    LICENSE_FILE=./fusion-common/license.key
-  elif [ -n "${LICENSE_FILE}" ]; then
-    # force the "./" on the filename for relative paths
-    LICENSE_FILE="$(dirname ${LICENSE_FILE})/$(basename ${LICENSE_FILE})"
-  fi
-  export LICENSE_FILE_PATH="- ${LICENSE_FILE}:/etc/wandisco/fusion/server/license.key"
-  export LICENSE_FILE_PATH_ONE_UI="- ${LICENSE_FILE}:/etc/wandisco/fusion/server/license/license.key"
 
   ## run zone a setup (use a subshell to avoid leaking env vars)
   (
