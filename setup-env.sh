@@ -291,6 +291,7 @@ if [ -z "$RUN_IN_CONTAINER" ]; then
     -v "$(pwd):$(pwd)" -w "$(pwd)" \
     -e RLWRAP_HOME=$(pwd) \
     -e RUN_IN_CONTAINER=true \
+    -e MIGRATOR_ALLOW_STOP_PATH="${MIGRATOR_ALLOW_STOP_PATH:-false}" \
     wandisco/setup-env:0.3 rlwrap ./setup-env.sh "$@"
   exit $?
 fi
