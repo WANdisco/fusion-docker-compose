@@ -240,7 +240,7 @@ Please choose from one of the following WANdisco Fusion deployment options:
   3. HDP Sandbox to custom distribution
   4. ADLS Gen1 to Gen2
   5. S3 and ADLS Gen2 (bi-directional)
-  6. CDH Sandbox to ADLS Gen2
+  6. CDH Sandbox to ADLS Gen2, Live Hive and Databricks integration
   7. CDH Sandbox to S3
   8. CDH Sandbox to custom distribution
   9. Custom deployment
@@ -369,7 +369,6 @@ fi
       save_var HADOOP_NAME_NODE_PORT "8020" "$ZONE_A_ENV"
       save_var NAME_NODE_PROXY_HOSTNAME "sandbox-hdp" "$ZONE_A_ENV"
       save_var FUSION_NAME_NODE_SERVICE_NAME "$NAME_NODE_PROXY_HOSTNAME:8020" "$ZONE_A_ENV"
-      save_var ZONE_A_PLUGIN "livehive" "$ZONE_A_ENV"
       save_var HIVE_METASTORE_HOSTNAME "sandbox-hdp" "$ZONE_A_ENV"
       save_var HIVE_METASTORE_PORT "9083" "$ZONE_A_ENV"
     ;;&
@@ -382,7 +381,6 @@ fi
       save_var HADOOP_NAME_NODE_PORT "8020" "$ZONE_A_ENV"
       save_var NAME_NODE_PROXY_HOSTNAME "sandbox-cdh" "$ZONE_A_ENV"
       save_var FUSION_NAME_NODE_SERVICE_NAME "$NAME_NODE_PROXY_HOSTNAME:8020" "$ZONE_A_ENV"
-      save_var ZONE_A_PLUGIN "NONE" "$ZONE_A_ENV"
       save_var HIVE_METASTORE_HOSTNAME "sandbox-cdh" "$ZONE_A_ENV"
       save_var HIVE_METASTORE_PORT "9083" "$ZONE_A_ENV"
     ;;&
@@ -391,47 +389,35 @@ fi
       save_var ZONE_B_NAME "adls2" "$SAVE_ENV"
       save_var HDI_VERSION "3.6" "$ZONE_B_ENV"
     ;;&
-    1)
-      save_var DOCKER_HOSTNAME "hdp-adls2" "$SAVE_ENV"
+    1|6)
+      save_var ZONE_A_PLUGIN "livehive" "$ZONE_A_ENV"
       save_var ZONE_B_PLUGIN "databricks" "$ZONE_B_ENV"
-    ;;
-    6)
-      save_var DOCKER_HOSTNAME "cdh-adls2" "$SAVE_ENV"
-      save_var ZONE_B_PLUGIN "NONE" "$ZONE_B_ENV"
-    ;;
-    2)
-      save_var DOCKER_HOSTNAME "hdp-s3" "$SAVE_ENV"
+    ;;&
+    2|7)
       save_var ZONE_B_TYPE "s3" "$SAVE_ENV"
       save_var ZONE_B_NAME "s3" "$SAVE_ENV"
+    ;;&
+    4)
+      save_var ZONE_A_TYPE "adls1" "$SAVE_ENV"
+      save_var ZONE_A_NAME "adls1" "$SAVE_ENV"
+      save_var HDI_VERSION "3.6" "$ZONE_B_ENV"
+    ;;&
+    5)
+      save_var ZONE_A_TYPE "s3" "$SAVE_ENV"
+      save_var ZONE_A_NAME "s3" "$SAVE_ENV"
+    ;;&
+    2|4|5|7)
+      save_var ZONE_A_PLUGIN "NONE" "$ZONE_A_ENV"
       save_var ZONE_B_PLUGIN "NONE" "$ZONE_B_ENV"
-    ;;
-    7)
-      save_var DOCKER_HOSTNAME "cdh-s3" "$SAVE_ENV"
-      save_var ZONE_B_TYPE "s3" "$SAVE_ENV"
-      save_var ZONE_B_NAME "s3" "$SAVE_ENV"
-      save_var ZONE_B_PLUGIN "NONE" "$ZONE_B_ENV"
+    ;;&
+    1|2|4|5|6|7)
+      save_var DOCKER_HOSTNAME "$ZONE_A_TYPE-$ZONE_B_TYPE" "$SAVE_ENV"
     ;;
     3)
       save_var DOCKER_HOSTNAME "hdp-custom" "$SAVE_ENV"
     ;;
     8)
       save_var DOCKER_HOSTNAME "cdh-custom" "$SAVE_ENV"
-    ;;
-    4|5)
-      save_var ZONE_B_PLUGIN "NONE" "$ZONE_B_ENV"
-    ;;&
-    4)
-      save_var DOCKER_HOSTNAME "adls1-adls2" "$SAVE_ENV"
-      save_var ZONE_A_TYPE "adls1" "$SAVE_ENV"
-      save_var ZONE_A_NAME "adls1" "$SAVE_ENV"
-      save_var ZONE_A_PLUGIN "NONE" "$ZONE_B_ENV"
-      save_var HDI_VERSION "3.6" "$ZONE_B_ENV"
-    ;;
-    5)
-      save_var DOCKER_HOSTNAME "s3-adls2" "$SAVE_ENV"
-      save_var ZONE_A_TYPE "s3" "$SAVE_ENV"
-      save_var ZONE_A_NAME "s3" "$SAVE_ENV"
-      save_var ZONE_A_PLUGIN "NONE" "$ZONE_B_ENV"
     ;;
     9)
       save_var USE_SANDBOX "n" "$SAVE_ENV"
