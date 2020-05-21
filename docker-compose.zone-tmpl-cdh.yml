@@ -110,7 +110,7 @@ services:
     hostname: "${DOCKER_HOSTNAME}"
     ports:
       - "${SSHD_PORT}:22"
-      - "${SSHD_AMBARI_PORT}:${SSHD_AMBARI_PORT}"
+      - "${SSHD_CLOUDERA_PORT}:${SSHD_CLOUDERA_PORT}"
     env_file:
       - "${ZONE_ENV}"
     volumes:
