@@ -48,6 +48,8 @@ services:
       - fusion-oneui-h2db:/h2db
       - fusion-${ZONE_A_NAME}-restart:/etc/wandisco/fusion/server/${ZONE_A_NAME}
       - fusion-${ZONE_B_NAME}-restart:/etc/wandisco/fusion/server/${ZONE_B_NAME}
+      - fusion-${ZONE_A_NAME}-etc-wandisco:/fusionConfig/${ZONE_A_NAME}
+      - fusion-${ZONE_B_NAME}-etc-wandisco:/fusionConfig/${ZONE_B_NAME}
       - fusion-license:/etc/wandisco/license
 
 volumes:
