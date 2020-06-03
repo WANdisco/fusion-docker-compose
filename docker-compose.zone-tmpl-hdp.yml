@@ -134,6 +134,8 @@ services:
       - ${FUSION_REPLICATION_PORT}:${FUSION_REPLICATION_PORT}
     env_file:
       - "${ZONE_ENV}"
+    depends_on: 
+      - fusion-oneui-server
     volumes:
       - logging-${ZONE_NAME}:/var/log/fusion
       - fusion-${ZONE_NAME}-etc-hadoop:/etc/hadoop
@@ -170,5 +172,3 @@ volumes:
   fusion-${ZONE_NAME}-etc-wandisco:
   fusion-${ZONE_NAME}-etc-hadoop:
   fusion-${ZONE_NAME}-opt-wandisco-fusion-ui-server-properties:
-
-  fusion-license:

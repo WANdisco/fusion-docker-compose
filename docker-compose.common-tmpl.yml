@@ -62,7 +62,5 @@ volumes:
   # Used for restarting fusion-server, fusion-ui-server and ihc servers
   fusion-${ZONE_A_NAME}-restart:
   fusion-${ZONE_B_NAME}-restart:
-  fusion-${ZONE_A_NAME}-etc-wandisco:
-  fusion-${ZONE_B_NAME}-etc-wandisco:
 
   fusion-license:
