@@ -17,13 +17,12 @@ version: "3.7"
 
 services:
   sandbox-cdh:
-    image: wandisco/sandbox-cdh:2.15.2.1
+    image: wandisco/sandbox-cdh:2.15.2.1-1
     privileged: true
     command: ["/sbin/init"]
     env_file: sandbox.env
     ports:
       - "7180:7180"
-      - "8888:8888"
       - "8889:8889"
       - "50070:50070"
       - "50010:50010"
