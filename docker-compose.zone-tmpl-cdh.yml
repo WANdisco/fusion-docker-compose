@@ -110,7 +110,7 @@ services:
     hostname: "${DOCKER_HOSTNAME}"
     ports:
       - "${SSHD_PORT}:22"
-      - "${SSHD_CLOUDERA_PORT}:${SSHD_CLOUDERA_PORT}"
+      - "${SSHD_AMBARI_PORT}:${SSHD_AMBARI_PORT}"
     env_file:
       - "${ZONE_ENV}"
     volumes:
@@ -136,6 +136,8 @@ services:
       - DB_ACTION=
     env_file:
       - "${ZONE_ENV}"
+    depends_on: 
+      - fusion-oneui-server
     volumes:
       - logging-${ZONE_NAME}:/var/log/fusion
       - fusion-${ZONE_NAME}-opt-wandisco-fusion-server-checkpoint:/opt/wandisco/fusion/server/checkpoint
@@ -172,5 +174,3 @@ volumes:
   fusion-${ZONE_NAME}-etc-wandisco:
   fusion-${ZONE_NAME}-etc-hadoop:
   fusion-${ZONE_NAME}-opt-wandisco-fusion-ui-server-properties:
-
-  fusion-license:
