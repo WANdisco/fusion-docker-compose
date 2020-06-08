@@ -228,12 +228,7 @@ validate_zone_name_uniq() {
 validate_deployment_type() {
   deployment_type="$1"
   case "$deployment_type" in
-    1)     return 0;;
-    2)     return 0;;
-    3)     return 0;;
-    4)     return 0;;
-    5)     return 0;;
-    6)     return 0;;
+    1|2|3|4|5|6|7|8|9)     return 0;;
   esac
   # for anything not matched by the above case, validation failed
   cat <<EOZONE
@@ -245,7 +240,10 @@ Please choose from one of the following WANdisco Fusion deployment options:
   3. HDP Sandbox to custom distribution
   4. ADLS Gen1 to Gen2
   5. S3 and ADLS Gen2 (bi-directional)
-  6. Custom deployment
+  6. CDH Sandbox to ADLS Gen2, Live Hive and Databricks integration
+  7. CDH Sandbox to S3
+  8. CDH Sandbox to custom distribution
+  9. Custom deployment
 
 EOZONE
   return 1
@@ -371,45 +369,57 @@ fi
       save_var HADOOP_NAME_NODE_PORT "8020" "$ZONE_A_ENV"
       save_var NAME_NODE_PROXY_HOSTNAME "sandbox-hdp" "$ZONE_A_ENV"
       save_var FUSION_NAME_NODE_SERVICE_NAME "$NAME_NODE_PROXY_HOSTNAME:8020" "$ZONE_A_ENV"
-      save_var ZONE_A_PLUGIN "livehive" "$ZONE_A_ENV"
       save_var HIVE_METASTORE_HOSTNAME "sandbox-hdp" "$ZONE_A_ENV"
       save_var HIVE_METASTORE_PORT "9083" "$ZONE_A_ENV"
     ;;&
-    1|4|5)
+    6|7|8)
+      save_var USE_SANDBOX "y" "$SAVE_ENV"
+      save_var ZONE_A_TYPE "cdh" "$SAVE_ENV"
+      save_var ZONE_A_NAME "sandbox-cdh" "$SAVE_ENV"
+      save_var CDH_VERSION "5.16.0" "$ZONE_A_ENV"
+      save_var HADOOP_NAME_NODE_HOSTNAME "sandbox-cdh" "$ZONE_A_ENV"
+      save_var HADOOP_NAME_NODE_PORT "8020" "$ZONE_A_ENV"
+      save_var NAME_NODE_PROXY_HOSTNAME "sandbox-cdh" "$ZONE_A_ENV"
+      save_var FUSION_NAME_NODE_SERVICE_NAME "$NAME_NODE_PROXY_HOSTNAME:8020" "$ZONE_A_ENV"
+      save_var HIVE_METASTORE_HOSTNAME "sandbox-cdh" "$ZONE_A_ENV"
+      save_var HIVE_METASTORE_PORT "9083" "$ZONE_A_ENV"
+    ;;&
+    1|4|5|6)
       save_var ZONE_B_TYPE "adls2" "$SAVE_ENV"
       save_var ZONE_B_NAME "adls2" "$SAVE_ENV"
       save_var HDI_VERSION "3.6" "$ZONE_B_ENV"
     ;;&
-    1)
-      save_var DOCKER_HOSTNAME "hdp-adls2" "$SAVE_ENV"
+    1|6)
+      save_var ZONE_A_PLUGIN "livehive" "$ZONE_A_ENV"
       save_var ZONE_B_PLUGIN "databricks" "$ZONE_B_ENV"
-    ;;
-    2)
-      save_var DOCKER_HOSTNAME "hdp-s3" "$SAVE_ENV"
+    ;;&
+    2|7)
       save_var ZONE_B_TYPE "s3" "$SAVE_ENV"
       save_var ZONE_B_NAME "s3" "$SAVE_ENV"
+    ;;&
+    4)
+      save_var ZONE_A_TYPE "adls1" "$SAVE_ENV"
+      save_var ZONE_A_NAME "adls1" "$SAVE_ENV"
+      save_var HDI_VERSION "3.6" "$ZONE_B_ENV"
+    ;;&
+    5)
+      save_var ZONE_A_TYPE "s3" "$SAVE_ENV"
+      save_var ZONE_A_NAME "s3" "$SAVE_ENV"
+    ;;&
+    2|4|5|7)
+      save_var ZONE_A_PLUGIN "NONE" "$ZONE_A_ENV"
       save_var ZONE_B_PLUGIN "NONE" "$ZONE_B_ENV"
+    ;;&
+    1|2|4|5|6|7)
+      save_var DOCKER_HOSTNAME "$ZONE_A_TYPE-$ZONE_B_TYPE" "$SAVE_ENV"
     ;;
     3)
       save_var DOCKER_HOSTNAME "hdp-custom" "$SAVE_ENV"
     ;;
-    4|5)
-      save_var ZONE_B_PLUGIN "NONE" "$ZONE_B_ENV"
-    ;;&
-    4)
-      save_var DOCKER_HOSTNAME "adls1-adls2" "$SAVE_ENV"
-      save_var ZONE_A_TYPE "adls1" "$SAVE_ENV"
-      save_var ZONE_A_NAME "adls1" "$SAVE_ENV"
-      save_var ZONE_A_PLUGIN "NONE" "$ZONE_B_ENV"
-      save_var HDI_VERSION "3.6" "$ZONE_B_ENV"
+    8)
+      save_var DOCKER_HOSTNAME "cdh-custom" "$SAVE_ENV"
     ;;
-    5)
-      save_var DOCKER_HOSTNAME "s3-adls2" "$SAVE_ENV"
-      save_var ZONE_A_TYPE "s3" "$SAVE_ENV"
-      save_var ZONE_A_NAME "s3" "$SAVE_ENV"
-      save_var ZONE_A_PLUGIN "NONE" "$ZONE_B_ENV"
-    ;;
-    6)
+    9)
       save_var USE_SANDBOX "n" "$SAVE_ENV"
     ;;
   esac
@@ -546,7 +556,14 @@ fi
   COMPOSE_FILE="${COMPOSE_FILE_COMMON_OUT}:${COMPOSE_ZONE_A}${COMPOSE_ZONE_B}"
   if [ "$USE_SANDBOX" = "y" ]; then
     save_var ZONE_PLUGIN "${ZONE_A_PLUGIN}" sandbox.env
-    COMPOSE_FILE="${COMPOSE_FILE}:docker-compose.sandbox-hdp.yml"
+    case $ZONE_A_TYPE in
+      cdh)
+        COMPOSE_FILE="${COMPOSE_FILE}:docker-compose.sandbox-cdh.yml"
+      ;;
+      hdp)
+        COMPOSE_FILE="${COMPOSE_FILE}:docker-compose.sandbox-hdp.yml"
+      ;;
+    esac
   fi
 
   # write the .env file
@@ -561,7 +578,15 @@ fi
   if [ "$USE_SANDBOX" = "y" ]; then
     echo "Once Fusion starts the following interfaces will be available on this host:"
     echo
-    echo "  Ambari: 8080"
+    case $ZONE_A_TYPE in
+      cdh)
+        echo "  Cloudera: 7180"
+      ;;
+      hdp)
+        echo "  Ambari: 8080"
+      ;;
+    esac
+
     echo "  OneUI:  ${ONEUI_SERVER_PORT}"
     echo
     echo "Please be aware that it may take some time for these ports to be fully available."
