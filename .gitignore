@@ -7,6 +7,7 @@ test.tpl
 !docker-compose.zone-tmpl*.yml
 !docker-compose.plugin-tmpl*.yml
 !docker-compose.induction-tmpl.yml
+!docker-compose.sandbox-*-tmpl.yml
 !docker-compose.sandbox-hdp-vanilla.yml
 [._]*.sw[a-p]
 *.sh_history
