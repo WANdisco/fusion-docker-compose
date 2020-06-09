@@ -1,6 +1,6 @@
 ---
 #################################################################################
-# Copyright (c) 2014-2019 WANdisco
+# Copyright (c) 2014-2020 WANdisco
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -11,16 +11,15 @@
 #
 ################################################################################
 #
-# This docker-compose.yml file will bring up an HDP sandbox cluster
+# This docker-compose.yml file will bring up an HDP sandbox vanilla cluster
 
 version: "3.7"
 
 services:
-  sandbox-hdp:
-    image: wandisco/sandbox-hdp:2.15.2.1-3
+  sandbox-hdp-vanilla:
+    image: wandisco/sandbox-hdp-vanilla
     privileged: true
     command: ["/sbin/init"]
-    env_file: sandbox.env
     ports:
       - "8000:8000"
       - "8080:8080"
@@ -35,6 +34,5 @@ services:
         soft: 170000
         hard: 190000
 
-  fusion-server-sandbox-hdp:
-    depends_on:
-      - sandbox-hdp
+networks:
+  fusion: {}

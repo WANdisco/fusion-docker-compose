@@ -225,15 +225,27 @@ validate_zone_name_uniq() {
   return 0
 }
 
+validate_hdp_custom_type() {
+  type="$1"
+  case "$type" in
+    1|2)     return 0;;
+  esac
+  # for anything not matched by the above case, validation failed
+  cat <<EOZONE
+
+Please choose from one of the following zone types:
+
+  1. HDP Sandbox with custom distribution
+  2. HDP Sandbox Vanilla
+
+EOZONE
+  return 1
+}
+
 validate_deployment_type() {
   deployment_type="$1"
   case "$deployment_type" in
-    1)     return 0;;
-    2)     return 0;;
-    3)     return 0;;
-    4)     return 0;;
-    5)     return 0;;
-    6)     return 0;;
+    1|2|3|4|5|6|7|8|9)     return 0;;
   esac
   # for anything not matched by the above case, validation failed
   cat <<EOZONE
@@ -245,7 +257,10 @@ Please choose from one of the following WANdisco Fusion deployment options:
   3. HDP Sandbox to custom distribution
   4. ADLS Gen1 to Gen2
   5. S3 and ADLS Gen2 (bi-directional)
-  6. Custom deployment
+  6. CDH Sandbox to ADLS Gen2, Live Hive and Databricks integration
+  7. CDH Sandbox to S3
+  8. CDH Sandbox to custom distribution
+  9. Custom deployment
 
 EOZONE
   return 1
@@ -255,11 +270,11 @@ validate_zone_type() {
   zone_type="$1"
 
   case "$zone_type" in
-    NONE)            return 0;; # TODO: verify at least zone A is defined
-    adls1|adls2)     return 0;;
-    s3|hcfs-emr)     return 0;;
-    cdh|hdp)         return 0;;
-    alibaba-emr)     return 0;;
+    NONE)                        return 0;; # TODO: verify at least zone A is defined
+    adls1|adls2)                 return 0;;
+    s3|hcfs-emr)                 return 0;;
+    cdh|hdp|hdp-vanilla)         return 0;;
+    alibaba-emr)                 return 0;;
   esac
   # for anything not matched by the above case, validation failed
   cat <<EOZONE
@@ -296,6 +311,7 @@ if [ -z "$RUN_IN_CONTAINER" ]; then
     -e RLWRAP_HOME=$(pwd) \
     -e RUN_IN_CONTAINER=true \
     -e MIGRATOR_ALLOW_STOP_PATH="${MIGRATOR_ALLOW_STOP_PATH:-false}" \
+    -e HOST_IP=$(hostname -I | cut -d' ' -f1) \
     wandisco/setup-env:0.3 rlwrap ./setup-env.sh "$@"
   exit $?
 fi
@@ -335,6 +351,8 @@ fi
 : "${COMPOSE_FILE_INDUCT_OUT:=docker-compose.induction.yml}"
 : "${COMPOSE_FILE_B_PLUGIN_OUT:=docker-compose.zone-b-plugin.yml}"
 : "${COMPOSE_FILE_COMMON_OUT:=docker-compose.common.yml}"
+: "${COMPOSE_FILE_SANDBOX_HDP_OUT:=docker-compose.sandbox-hdp.yml}"
+: "${COMPOSE_FILE_SANDBOX_CDH_OUT:=docker-compose.sandbox-cdh.yml}"
 
 # run everything below in a subshell to avoid leaking env vars
 (
@@ -362,54 +380,86 @@ fi
     *)
       save_var DEPLOYMENT_TYPE "${DEPLOYMENT_TYPE}" "$SAVE_ENV"
     ;;&
-    1|2|3)
+    1|2)
       save_var USE_SANDBOX "y" "$SAVE_ENV"
       save_var ZONE_A_TYPE "hdp" "$SAVE_ENV"
-      save_var ZONE_A_NAME "sandbox-hdp" "$SAVE_ENV"
       save_var HDP_VERSION "2.6.5" "$ZONE_A_ENV"
       save_var HADOOP_NAME_NODE_HOSTNAME "sandbox-hdp" "$ZONE_A_ENV"
       save_var HADOOP_NAME_NODE_PORT "8020" "$ZONE_A_ENV"
       save_var NAME_NODE_PROXY_HOSTNAME "sandbox-hdp" "$ZONE_A_ENV"
       save_var FUSION_NAME_NODE_SERVICE_NAME "$NAME_NODE_PROXY_HOSTNAME:8020" "$ZONE_A_ENV"
-      save_var ZONE_A_PLUGIN "livehive" "$ZONE_A_ENV"
       save_var HIVE_METASTORE_HOSTNAME "sandbox-hdp" "$ZONE_A_ENV"
       save_var HIVE_METASTORE_PORT "9083" "$ZONE_A_ENV"
     ;;&
-    1|4|5)
+    3)
+      validate_hdp_custom_type "$HDP_SANDBOX_TYPE"
+      update_var HDP_SANDBOX_TYPE "Select the HDP Sandbox type you would like to use" "1" validate_hdp_custom_type
+      case $HDP_SANDBOX_TYPE in
+        *)
+          save_var HDP_SANDBOX_TYPE "${HDP_SANDBOX_TYPE}" "$SAVE_ENV"
+        ;;&
+        1)
+          save_var USE_SANDBOX "y" "$SAVE_ENV"
+          save_var ZONE_A_TYPE "hdp" "$SAVE_ENV"
+          save_var HDP_VERSION "2.6.5" "$ZONE_A_ENV"
+          save_var HADOOP_NAME_NODE_HOSTNAME "sandbox-hdp" "$ZONE_A_ENV"
+          save_var HADOOP_NAME_NODE_PORT "8020" "$ZONE_A_ENV"
+          save_var NAME_NODE_PROXY_HOSTNAME "sandbox-hdp" "$ZONE_A_ENV"
+          save_var FUSION_NAME_NODE_SERVICE_NAME "$NAME_NODE_PROXY_HOSTNAME:8020" "$ZONE_A_ENV"
+          save_var HIVE_METASTORE_HOSTNAME "sandbox-hdp" "$ZONE_A_ENV"
+          save_var HIVE_METASTORE_PORT "9083" "$ZONE_A_ENV"
+        ;;
+        2)
+          save_var USE_SANDBOX "y" "$SAVE_ENV"
+          save_var DOCKER_HOSTNAME "hdp_vanilla-custom" "$SAVE_ENV"
+          save_var ZONE_A_TYPE "hdp-vanilla" "$SAVE_ENV"
+          save_var ZONE_B_TYPE "NONE" "$SAVE_ENV"
+        ;;
+      esac
+    ;;&
+    6|7|8)
+      save_var USE_SANDBOX "y" "$SAVE_ENV"
+      save_var ZONE_A_TYPE "cdh" "$SAVE_ENV"
+      save_var CDH_VERSION "5.16.0" "$ZONE_A_ENV"
+      save_var HADOOP_NAME_NODE_HOSTNAME "sandbox-cdh" "$ZONE_A_ENV"
+      save_var HADOOP_NAME_NODE_PORT "8020" "$ZONE_A_ENV"
+      save_var NAME_NODE_PROXY_HOSTNAME "sandbox-cdh" "$ZONE_A_ENV"
+      save_var FUSION_NAME_NODE_SERVICE_NAME "$NAME_NODE_PROXY_HOSTNAME:8020" "$ZONE_A_ENV"
+      save_var HIVE_METASTORE_HOSTNAME "sandbox-cdh" "$ZONE_A_ENV"
+      save_var HIVE_METASTORE_PORT "9083" "$ZONE_A_ENV"
+    ;;&
+    1|4|5|6)
       save_var ZONE_B_TYPE "adls2" "$SAVE_ENV"
-      save_var ZONE_B_NAME "adls2" "$SAVE_ENV"
       save_var HDI_VERSION "3.6" "$ZONE_B_ENV"
     ;;&
-    1)
-      save_var DOCKER_HOSTNAME "hdp-adls2" "$SAVE_ENV"
+    1|6)
+      save_var ZONE_A_PLUGIN "livehive" "$ZONE_A_ENV"
       save_var ZONE_B_PLUGIN "databricks" "$ZONE_B_ENV"
-    ;;
-    2)
-      save_var DOCKER_HOSTNAME "hdp-s3" "$SAVE_ENV"
+    ;;&
+    2|7)
       save_var ZONE_B_TYPE "s3" "$SAVE_ENV"
-      save_var ZONE_B_NAME "s3" "$SAVE_ENV"
+    ;;&
+    4)
+      save_var ZONE_A_TYPE "adls1" "$SAVE_ENV"
+      save_var HDI_VERSION "3.6" "$ZONE_B_ENV"
+    ;;&
+    5)
+      save_var ZONE_A_TYPE "s3" "$SAVE_ENV"
+    ;;&
+    2|4|5|7)
+      save_var ZONE_A_PLUGIN "NONE" "$ZONE_A_ENV"
       save_var ZONE_B_PLUGIN "NONE" "$ZONE_B_ENV"
+    ;;&
+    1|2|4|5|6|7)
+      save_var DOCKER_HOSTNAME "$ZONE_A_TYPE-$ZONE_B_TYPE" "$SAVE_ENV"
     ;;
     3)
       save_var DOCKER_HOSTNAME "hdp-custom" "$SAVE_ENV"
     ;;
-    4|5)
-      save_var ZONE_B_PLUGIN "NONE" "$ZONE_B_ENV"
-    ;;&
-    4)
-      save_var DOCKER_HOSTNAME "adls1-adls2" "$SAVE_ENV"
-      save_var ZONE_A_TYPE "adls1" "$SAVE_ENV"
-      save_var ZONE_A_NAME "adls1" "$SAVE_ENV"
-      save_var ZONE_A_PLUGIN "NONE" "$ZONE_B_ENV"
-      save_var HDI_VERSION "3.6" "$ZONE_B_ENV"
+    8)
+      save_var DOCKER_HOSTNAME "cdh-custom" "$SAVE_ENV"
     ;;
-    5)
-      save_var DOCKER_HOSTNAME "s3-adls2" "$SAVE_ENV"
-      save_var ZONE_A_TYPE "s3" "$SAVE_ENV"
-      save_var ZONE_A_NAME "s3" "$SAVE_ENV"
-      save_var ZONE_A_PLUGIN "NONE" "$ZONE_B_ENV"
-    ;;
-    6)
+    9)
       save_var USE_SANDBOX "n" "$SAVE_ENV"
     ;;
   esac
@@ -418,14 +468,14 @@ fi
 
   validate_zone_type "$ZONE_A_TYPE"
   update_var ZONE_A_TYPE "Enter the first zone type" "" validate_zone_type
-  update_var ZONE_A_NAME "Enter the first zone name" "${ZONE_A_TYPE}" validate_zone_name
+  save_var ZONE_A_NAME "${ZONE_A_TYPE}-$(shuf -i 1-9999 -n 1)" "$SAVE_ENV"
 
   ## set variables for compose zone b
 
   validate_zone_type "$ZONE_B_TYPE"
   update_var ZONE_B_TYPE "Enter the second zone type (or NONE to skip)" "" validate_zone_type
   if [ "$ZONE_B_TYPE" != NONE ]; then
-    update_var ZONE_B_NAME "Enter a name for the second zone" "${ZONE_B_TYPE}" validate_zone_name_uniq
+    save_var ZONE_B_NAME "${ZONE_B_TYPE}-$(shuf -i 1-9999 -n 1)" "$SAVE_ENV"
   fi
 
   ## setup common file
@@ -434,7 +484,7 @@ fi
   . "./common.conf"
 
   ## run zone a setup (use a subshell to avoid leaking env vars)
-  (
+  ( if [ "$ZONE_A_TYPE" != "hdp-vanilla" ]; then
     default_port_offset=0
     zone_letter=A
     set -a
@@ -448,10 +498,16 @@ fi
     # save common vars to zone file
     save_var ZONE_NAME "$ZONE_NAME" "$SAVE_ENV"
     save_var FUSION_NODE_ID "$FUSION_NODE_ID" "$SAVE_ENV"
-    save_var FUSION_SERVER_HOST "fusion-server-$ZONE_NAME" "$ZONE_ENV"
-    save_var INTERNAL_FUSION_SERVER_HOST "fusion-server-$ZONE_NAME" "$ZONE_ENV"
-    save_var IHC_SERVER_HOST "fusion-ihc-server-$ZONE_NAME" "$ZONE_ENV"
 
+    if [ "$ZONE_B_TYPE" != NONE ]; then
+      save_var FUSION_SERVER_HOST "fusion-server-$ZONE_NAME" "$ZONE_ENV"
+      save_var IHC_SERVER_HOST "fusion-ihc-server-$ZONE_NAME" "$ZONE_ENV"
+    else
+      save_var FUSION_SERVER_HOST "${HOST_IP}" "$ZONE_ENV"
+      save_var IHC_SERVER_HOST "${HOST_IP}" "$ZONE_ENV"
+    fi
+
+    save_var INTERNAL_FUSION_SERVER_HOST "fusion-server-$ZONE_NAME" "$ZONE_ENV"
     # load any existing zone environment
     [ -f "${ZONE_ENV}" ] && load_file "./${ZONE_ENV}"
     # run the common fusion zone config
@@ -463,7 +519,7 @@ fi
     [ -f "${ZONE_ENV}" ] && load_file "./${ZONE_ENV}"
     COMPOSE_ZONE_A="${COMPOSE_FILE_A_OUT}"
     # configure plugins
-    update_var ZONE_A_PLUGIN "Select plugin for ${ZONE_NAME} (livehive, or NONE to skip)" "NONE" validate_plugin
+    update_var ZONE_A_PLUGIN "Select plugin for zone ${ZONE_NAME} (livehive, or NONE to skip)" "NONE" validate_plugin
     ZONE_PLUGIN=${ZONE_A_PLUGIN}
     save_var ZONE_PLUGIN "$ZONE_PLUGIN" "$ZONE_ENV"
     if [ "$ZONE_A_PLUGIN" != "NONE" ]; then
@@ -477,10 +533,10 @@ fi
     envsubst <"docker-compose.zone-tmpl-${ZONE_TYPE}.yml" >"${COMPOSE_FILE_A_OUT}"
     save_var COMPOSE_ZONE_A "${COMPOSE_ZONE_A}" "${COMMON_ENV}"
     set +a
-  )
+  fi; )
 
   ## run zone b setup (use a subshell to avoid leaking env vars)
-  ( if [ "$ZONE_B_TYPE" != "NONE" ]; then
+  ( if [[ "$ZONE_B_TYPE" != "NONE" ]]; then
     default_port_offset=500
     zone_letter=B
     set -a
@@ -509,7 +565,7 @@ fi
     [ -f "${ZONE_ENV}" ] && load_file "./${ZONE_ENV}"
     COMPOSE_ZONE_B="${COMPOSE_FILE_B_OUT}"
     # configure plugins
-    update_var ZONE_B_PLUGIN "Select plugin for ${ZONE_NAME} (livehive, or NONE to skip)" "NONE" validate_plugin
+    update_var ZONE_B_PLUGIN "Select plugin for zone ${ZONE_NAME} (livehive, or NONE to skip)" "NONE" validate_plugin
     ZONE_PLUGIN=${ZONE_B_PLUGIN}
     save_var ZONE_PLUGIN "$ZONE_PLUGIN" "$ZONE_ENV"
     if [ "$ZONE_B_PLUGIN" != "NONE" ]; then
@@ -526,9 +582,16 @@ fi
     set +a
   fi; )
 
-  FUSION_SERVER_HOSTNAMES="http://fusion-server-${ZONE_A_NAME}:${ZONE_A_SERVER_PORT}"
+  if [ "$ZONE_A_TYPE" != "hdp-vanilla" ]; then
+    FUSION_SERVER_HOSTNAMES="http://fusion-server-${ZONE_A_NAME}:${ZONE_A_SERVER_PORT}"
+  fi
+
   if [ "$ZONE_B_TYPE" != "NONE" ]; then
     FUSION_SERVER_HOSTNAMES="${FUSION_SERVER_HOSTNAMES},http://fusion-server-${ZONE_B_NAME}:${ZONE_B_SERVER_PORT}"
+  fi
+
+  if [[ ! -n $FUSION_SERVER_HOSTNAMES ]]; then
+    FUSION_SERVER_HOSTNAMES="none"
   fi
   save_var FUSION_SERVER_HOSTNAMES "$FUSION_SERVER_HOSTNAMES" "${COMMON_ENV}"
 
@@ -543,10 +606,21 @@ fi
   set +a
 
   # set compose variables
-  COMPOSE_FILE="${COMPOSE_FILE_COMMON_OUT}:${COMPOSE_ZONE_A}${COMPOSE_ZONE_B}"
+  COMPOSE_FILE=${COMPOSE_FILE_COMMON_OUT}
+  if [ "$ZONE_A_TYPE" != "hdp-vanilla" ]; then
+    COMPOSE_FILE="${COMPOSE_FILE}:${COMPOSE_ZONE_A}${COMPOSE_ZONE_B}"
+  fi
   if [ "$USE_SANDBOX" = "y" ]; then
     save_var ZONE_PLUGIN "${ZONE_A_PLUGIN}" sandbox.env
-    COMPOSE_FILE="${COMPOSE_FILE}:docker-compose.sandbox-hdp.yml"
+    COMPOSE_FILE="${COMPOSE_FILE}:docker-compose.sandbox-${ZONE_A_TYPE}.yml"
+    case $ZONE_A_TYPE in
+      hdp)
+        envsubst <"docker-compose.sandbox-${ZONE_A_TYPE}-tmpl.yml" >"${COMPOSE_FILE_SANDBOX_HDP_OUT}"
+      ;;
+      cdh)
+        envsubst <"docker-compose.sandbox-${ZONE_A_TYPE}-tmpl.yml" >"${COMPOSE_FILE_SANDBOX_CDH_OUT}"
+      ;;
+    esac
   fi
 
   # write the .env file
@@ -561,7 +635,15 @@ fi
   if [ "$USE_SANDBOX" = "y" ]; then
     echo "Once Fusion starts the following interfaces will be available on this host:"
     echo
-    echo "  Ambari: 8080"
+    case $ZONE_A_TYPE in
+      cdh)
+        echo "  Cloudera: 7180"
+      ;;
+      hdp|hdp-vanilla)
+        echo "  Ambari: 8080"
+      ;;
+    esac
+
     echo "  OneUI:  ${ONEUI_SERVER_PORT}"
     echo
     echo "Please be aware that it may take some time for these ports to be fully available."
