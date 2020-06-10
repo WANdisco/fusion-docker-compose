@@ -17,7 +17,7 @@ version: "3.7"
 
 services:
   sandbox-hdp:
-    image: wandisco/sandbox-hdp:2.15.2.1-4
+    image: wandisco/sandbox-hdp:2.15.2.1-5
     privileged: true
     command: ["/sbin/init"]
     env_file: sandbox.env
