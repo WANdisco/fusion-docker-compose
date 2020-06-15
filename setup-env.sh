@@ -416,7 +416,7 @@ fi
           save_var ZONE_B_TYPE "NONE" "$SAVE_ENV"
         ;;
       esac
-    ;;
+    ;;&
     6|7|8)
       save_var USE_SANDBOX "y" "$SAVE_ENV"
       save_var ZONE_A_TYPE "cdh" "$SAVE_ENV"
