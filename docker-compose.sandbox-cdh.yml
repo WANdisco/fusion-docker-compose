@@ -26,9 +26,6 @@ services:
       - "8889:8889"
       - "50070:50070"
       - "50010:50010"
-    external_links:
-      - fusion-server-${ZONE_NAME}:fusion-server-sandbox-cdh
-      - fusion-livehive-proxy-${ZONE_NAME}:fusion-livehive-proxy-sandbox-cdh
     networks:
       - fusion
     hostname: sandbox-cdh
@@ -38,6 +35,6 @@ services:
         soft: 170000
         hard: 190000
 
-  fusion-server-${ZONE_NAME}:
+  fusion-server-sandbox-cdh:
     depends_on:
       - sandbox-cdh
