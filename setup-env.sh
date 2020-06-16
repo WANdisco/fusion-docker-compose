@@ -401,6 +401,7 @@ fi
         1)
           save_var USE_SANDBOX "y" "$SAVE_ENV"
           save_var ZONE_A_TYPE "hdp" "$SAVE_ENV"
+          save_var ZONE_A_NAME "sandbox-hdp" "$SAVE_ENV"
           save_var HDP_VERSION "2.6.5" "$ZONE_A_ENV"
           save_var HADOOP_NAME_NODE_HOSTNAME "sandbox-hdp" "$ZONE_A_ENV"
           save_var HADOOP_NAME_NODE_PORT "8020" "$ZONE_A_ENV"
@@ -413,6 +414,7 @@ fi
           save_var USE_SANDBOX "y" "$SAVE_ENV"
           save_var DOCKER_HOSTNAME "hdp_vanilla-custom" "$SAVE_ENV"
           save_var ZONE_A_TYPE "hdp-vanilla" "$SAVE_ENV"
+          save_var ZONE_A_NAME "sandbox-hdp-vanilla" "$SAVE_ENV"
           save_var ZONE_B_TYPE "NONE" "$SAVE_ENV"
         ;;
       esac
@@ -420,6 +422,7 @@ fi
     6|7|8)
       save_var USE_SANDBOX "y" "$SAVE_ENV"
       save_var ZONE_A_TYPE "cdh" "$SAVE_ENV"
+      save_var ZONE_A_NAME "sandbox-cdh" "$SAVE_ENV"
       save_var CDH_VERSION "5.16.0" "$ZONE_A_ENV"
       save_var HADOOP_NAME_NODE_HOSTNAME "sandbox-cdh" "$ZONE_A_ENV"
       save_var HADOOP_NAME_NODE_PORT "8020" "$ZONE_A_ENV"
@@ -438,13 +441,16 @@ fi
     ;;&
     2|7)
       save_var ZONE_B_TYPE "s3" "$SAVE_ENV"
+      save_var ZONE_B_NAME "s3" "$SAVE_ENV"
     ;;&
     4)
       save_var ZONE_A_TYPE "adls1" "$SAVE_ENV"
+      save_var ZONE_A_NAME "adls1" "$SAVE_ENV"
       save_var HDI_VERSION "3.6" "$ZONE_B_ENV"
     ;;&
     5)
       save_var ZONE_A_TYPE "s3" "$SAVE_ENV"
+      save_var ZONE_A_NAME "s3" "$SAVE_ENV"
     ;;&
     2|4|5|7)
       save_var ZONE_A_PLUGIN "NONE" "$ZONE_A_ENV"
@@ -613,14 +619,6 @@ fi
   if [ "$USE_SANDBOX" = "y" ]; then
     save_var ZONE_PLUGIN "${ZONE_A_PLUGIN}" sandbox.env
     COMPOSE_FILE="${COMPOSE_FILE}:docker-compose.sandbox-${ZONE_A_TYPE}.yml"
-    case $ZONE_A_TYPE in
-      hdp)
-        envsubst <"docker-compose.sandbox-${ZONE_A_TYPE}-tmpl.yml" >"${COMPOSE_FILE_SANDBOX_HDP_OUT}"
-      ;;
-      cdh)
-        envsubst <"docker-compose.sandbox-${ZONE_A_TYPE}-tmpl.yml" >"${COMPOSE_FILE_SANDBOX_CDH_OUT}"
-      ;;
-    esac
   fi
 
   # write the .env file
