@@ -11,30 +11,28 @@
 #
 ################################################################################
 #
-# This docker-compose.yml file will bring up an CDH sandbox cluster
+# This docker-compose.yml file will bring up an HDP sandbox vanilla cluster
 
 version: "3.7"
 
 services:
-  sandbox-cdh:
-    image: wandisco/sandbox-cdh:2.15.2.1-1
+  sandbox-hdp-vanilla:
+    image: wandisco/sandbox-hdp-vanilla
     privileged: true
     command: ["/sbin/init"]
-    env_file: sandbox.env
     ports:
-      - "7180:7180"
-      - "8889:8889"
+      - "8000:8000"
+      - "8080:8080"
       - "50070:50070"
       - "50010:50010"
     networks:
       - fusion
-    hostname: sandbox-cdh
+    hostname: sandbox-hdp
     ulimits:
       nproc: 800000
       nofile:
         soft: 170000
         hard: 190000
 
-  fusion-server-sandbox-cdh:
-    depends_on:
-      - sandbox-cdh
+networks:
+  fusion: {}
