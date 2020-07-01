@@ -434,7 +434,7 @@ fi
       save_var ZONE_B_NAME "adls2" "$SAVE_ENV"
       save_var HDI_VERSION "3.6" "$ZONE_B_ENV"
     ;;&
-    1|6)
+    1|2|6)
       save_var ZONE_A_PLUGIN "livehive" "$ZONE_A_ENV"
       save_var ZONE_B_PLUGIN "databricks" "$ZONE_B_ENV"
     ;;&
@@ -451,7 +451,7 @@ fi
       save_var ZONE_A_TYPE "s3" "$SAVE_ENV"
       save_var ZONE_A_NAME "s3" "$SAVE_ENV"
     ;;&
-    2|4|5|7)
+    4|5|7)
       save_var ZONE_A_PLUGIN "NONE" "$ZONE_A_ENV"
       save_var ZONE_B_PLUGIN "NONE" "$ZONE_B_ENV"
     ;;&
