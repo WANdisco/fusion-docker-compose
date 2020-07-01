@@ -253,7 +253,7 @@ validate_deployment_type() {
 Please choose from one of the following WANdisco Fusion deployment options:
 
   1. HDP Sandbox to ADLS Gen2, Live Hive and Databricks integration
-  2. HDP Sandbox to S3
+  2. HDP Sandbox to S3, Live Hive and Databricks integration
   3. HDP Sandbox to custom distribution
   4. ADLS Gen1 to Gen2
   5. S3 and ADLS Gen2 (bi-directional)
