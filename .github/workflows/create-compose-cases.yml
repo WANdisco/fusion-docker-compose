@@ -1,0 +1,46 @@
+name: COMPOSE CASES CI
+
+on:
+  push:
+    branches:
+      - master
+      - integration
+      - features/hdp-sandbox
+
+jobs:
+  hdp-adls2:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Create environment files
+      run: echo "DEPLOYMENT_TYPE=1" > compose.env && ./setup-env.sh && rm compose.env
+
+    - name: Move files to target folder
+      run: |
+        mkdir target
+        . .env
+        IFS=':' read -r -a composeFiles <<< "${COMPOSE_FILE}"
+        cp readme/hdp-adls2.md target/README.md
+        cp ${composeFiles[@]} *.env .env target/
+        ls -lah target/
+
+    - name: Init git repo in target folder
+      working-directory: target
+      run: |
+        git init
+        git config --local user.email "action@github.com"
+        git config --local user.name "GitHub Action"
+        git add .
+        git commit -m "Auto update case environment"
+
+    - name: Push changes to remote repo
+      uses: ad-m/github-push-action@master
+      with:
+        github_token: '${{ secrets.API_TOKEN_GITHUB }}'
+        directory: target
+        repository: WANdisco/hdp-adls2
+        branch: '${{ github.ref }}'
+        force: true
+
