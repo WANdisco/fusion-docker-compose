@@ -44,7 +44,7 @@ services:
     env_file:
       - "${COMMON_ENV}"
     volumes:
-      - logging-oneui-server:/var/log/fusion/
+      - logging-oneui-server:/var/log/wandisco/
       - fusion-oneui-h2db:/h2db
       - fusion-${ZONE_A_NAME}-etc-wandisco:/fusionConfig/${ZONE_A_NAME}
       - fusion-${ZONE_B_NAME}-etc-wandisco:/fusionConfig/${ZONE_B_NAME}
