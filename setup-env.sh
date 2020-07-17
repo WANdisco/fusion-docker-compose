@@ -604,7 +604,9 @@ fi
   export COMMON_ENV
 
   if [ "$ZONE_A_TYPE" != "hdp-vanilla" ]; then
-  envsubst <"docker-compose.common-tmpl.yml" >"${COMPOSE_FILE_COMMON_OUT}"
+    envsubst <"docker-compose.common-tmpl.yml" >"${COMPOSE_FILE_COMMON_OUT}"
+  else
+    envsubst <"docker-compose.debug-tmpl.yml" >"${COMPOSE_FILE_COMMON_OUT}"
   fi
 
   set +a
