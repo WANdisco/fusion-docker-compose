@@ -594,6 +594,7 @@ fi
   fi
   save_var FUSION_SERVER_HOSTNAMES "$FUSION_SERVER_HOSTNAMES" "${COMMON_ENV}"
 
+
   ## generate the common yml
   set -a
   # load env files in order of increasing priority
@@ -601,7 +602,11 @@ fi
   [ -f "${ZONE_A_ENV}" ] && load_file "./${ZONE_A_ENV}"
   [ -f "./${COMMON_ENV}" ] && load_file "./${COMMON_ENV}"
   export COMMON_ENV
+
+  if [ "$ZONE_A_TYPE" != "hdp-vanilla" ]; then
   envsubst <"docker-compose.common-tmpl.yml" >"${COMPOSE_FILE_COMMON_OUT}"
+  fi
+
   set +a
 
   # set compose variables
