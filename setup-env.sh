@@ -613,10 +613,10 @@ fi
   COMPOSE_FILE=${COMPOSE_FILE_COMMON_OUT}
   if [ "$ZONE_A_TYPE" != "hdp-vanilla" ]; then
     COMPOSE_FILE="${COMPOSE_FILE}:${COMPOSE_ZONE_A}${COMPOSE_ZONE_B}"
-  else
-    COMPOSE_FILE="${COMPOSE_ZONE_A}"
   fi
-  if [ "$USE_SANDBOX" = "y" ]; then
+  if [ "$USE_SANDBOX" = "y" ]  && [ "$ZONE_A_TYPE" = "hdp-vanilla" ]; then
+    COMPOSE_FILE="docker-compose.sandbox-${ZONE_A_TYPE}.yml"
+  elif [ "$USE_SANDBOX" = "y" ] && [ "$ZONE_A_TYPE" != "hdp-vanilla" ]; then
     save_var ZONE_PLUGIN "${ZONE_A_PLUGIN}" sandbox.env
     COMPOSE_FILE="${COMPOSE_FILE}:docker-compose.sandbox-${ZONE_A_TYPE}.yml"
   fi
