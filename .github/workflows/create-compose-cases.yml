@@ -6,6 +6,7 @@ on:
       - master
       - integration
       - features/hdp-sandbox
+      - test 
 
 jobs:
   hdp-adls2:
