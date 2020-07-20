@@ -594,6 +594,7 @@ fi
   fi
   save_var FUSION_SERVER_HOSTNAMES "$FUSION_SERVER_HOSTNAMES" "${COMMON_ENV}"
 
+
   ## generate the common yml
   set -a
   # load env files in order of increasing priority
@@ -601,7 +602,11 @@ fi
   [ -f "${ZONE_A_ENV}" ] && load_file "./${ZONE_A_ENV}"
   [ -f "./${COMMON_ENV}" ] && load_file "./${COMMON_ENV}"
   export COMMON_ENV
-  envsubst <"docker-compose.common-tmpl.yml" >"${COMPOSE_FILE_COMMON_OUT}"
+
+  if [ "$ZONE_A_TYPE" != "hdp-vanilla" ]; then
+    envsubst <"docker-compose.common-tmpl.yml" >"${COMPOSE_FILE_COMMON_OUT}"
+  fi
+
   set +a
 
   # set compose variables
@@ -609,7 +614,9 @@ fi
   if [ "$ZONE_A_TYPE" != "hdp-vanilla" ]; then
     COMPOSE_FILE="${COMPOSE_FILE}:${COMPOSE_ZONE_A}${COMPOSE_ZONE_B}"
   fi
-  if [ "$USE_SANDBOX" = "y" ]; then
+  if [ "$USE_SANDBOX" = "y" ]  && [ "$ZONE_A_TYPE" = "hdp-vanilla" ]; then
+    COMPOSE_FILE="docker-compose.sandbox-${ZONE_A_TYPE}.yml"
+  elif [ "$USE_SANDBOX" = "y" ] && [ "$ZONE_A_TYPE" != "hdp-vanilla" ]; then
     save_var ZONE_PLUGIN "${ZONE_A_PLUGIN}" sandbox.env
     COMPOSE_FILE="${COMPOSE_FILE}:docker-compose.sandbox-${ZONE_A_TYPE}.yml"
   fi
