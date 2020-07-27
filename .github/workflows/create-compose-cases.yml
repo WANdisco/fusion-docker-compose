@@ -18,13 +18,16 @@ jobs:
       run: echo "DEPLOYMENT_TYPE=1" > compose.env && ./setup-env.sh && rm compose.env
 
     - name: Move files to target folder
+      env:
+        README_REPLICATE_FROM: "a non-kerberized Hortonworks (HDP) Sandbox"
+        README_REPLICATE_TO: "an Azure Databricks cluster"
+        README_QUICKSTART: "https://wandisco.github.io/wandisco-documentation/docs/quickstarts/installation/hdp_sandbox_lhv_client-adlsg2_lan"
       run: |
         mkdir target
         . .env
         IFS=':' read -r -a composeFiles <<< "${COMPOSE_FILE}"
-        cp readme/hdp-adls2.md target/README.md
+        envsubst <".github/ci_readme_template.md" >"target/README.md"
         cp ${composeFiles[@]} *.env .env target/
-        ls -lah target/
 
     - name: Init git repo in target folder
       working-directory: target
@@ -43,4 +46,155 @@ jobs:
         repository: WANdisco/hdp-adls2
         branch: '${{ github.ref }}'
         force: true
+  hdp-s3:
+    runs-on: ubuntu-latest
 
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Create environment files
+      run: echo "DEPLOYMENT_TYPE=2" > compose.env && ./setup-env.sh && rm compose.env
+
+    - name: Move files to target folder
+      env:
+        README_REPLICATE_FROM: "a non-kerberized Hortonworks (HDP) Sandbox"
+        README_REPLICATE_TO: "an AWS S3 bucket"
+        README_QUICKSTART: "https://wandisco.github.io/wandisco-documentation/docs/quickstarts/installation/hdp_sandbox_lhv_client-adlsg2_lan"
+      run: |
+        mkdir target
+        . .env
+        IFS=':' read -r -a composeFiles <<< "${COMPOSE_FILE}"
+        envsubst <".github/ci_readme_template.md" >"target/README.md"
+        cp ${composeFiles[@]} *.env .env target/
+
+    - name: Init git repo in target folder
+      working-directory: target
+      run: |
+        git init
+        git config --local user.email "action@github.com"
+        git config --local user.name "GitHub Action"
+        git add .
+        git commit -m "Auto update case environment"
+
+    - name: Push changes to remote repo
+      uses: ad-m/github-push-action@master
+      with:
+        github_token: '${{ secrets.API_TOKEN_GITHUB }}'
+        directory: target
+        repository: WANdisco/hdp-s3
+        branch: '${{ github.ref }}'
+        force: true
+  cdh-adls2:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Create environment files
+      run: echo "DEPLOYMENT_TYPE=6" > compose.env && ./setup-env.sh && rm compose.env
+
+    - name: Move files to target folder
+      env:
+        README_REPLICATE_FROM: "a non-kerberized Cloudera (CDH) Sandbox"
+        README_REPLICATE_TO: "an Azure Databricks cluster"
+        README_QUICKSTART: "https://wandisco.github.io/wandisco-documentation/docs/quickstarts/installation/hdp_sandbox_lhv_client-adlsg2_lan"
+      run: |
+        mkdir target
+        . .env
+        IFS=':' read -r -a composeFiles <<< "${COMPOSE_FILE}"
+        envsubst <".github/ci_readme_template.md" >"target/README.md"
+        cp ${composeFiles[@]} *.env .env target/
+
+    - name: Init git repo in target folder
+      working-directory: target
+      run: |
+        git init
+        git config --local user.email "action@github.com"
+        git config --local user.name "GitHub Action"
+        git add .
+        git commit -m "Auto update case environment"
+
+    - name: Push changes to remote repo
+      uses: ad-m/github-push-action@master
+      with:
+        github_token: '${{ secrets.API_TOKEN_GITHUB }}'
+        directory: target
+        repository: WANdisco/cdh-adls2
+        branch: '${{ github.ref }}'
+        force: true
+  cdh-s3:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Create environment files
+      run: echo "DEPLOYMENT_TYPE=7" > compose.env && ./setup-env.sh && rm compose.env
+
+    - name: Move files to target folder
+      env:
+        README_REPLICATE_FROM: "a non-kerberized Cloudera (CDH) Sandbox"
+        README_REPLICATE_TO: "an AWS S3 bucket"
+        README_QUICKSTART: "https://wandisco.github.io/wandisco-documentation/docs/quickstarts/installation/hdp_sandbox_lhv_client-adlsg2_lan"
+      run: |
+        mkdir target
+        . .env
+        IFS=':' read -r -a composeFiles <<< "${COMPOSE_FILE}"
+        envsubst <".github/ci_readme_template.md" >"target/README.md"
+        cp ${composeFiles[@]} *.env .env target/
+
+    - name: Init git repo in target folder
+      working-directory: target
+      run: |
+        git init
+        git config --local user.email "action@github.com"
+        git config --local user.name "GitHub Action"
+        git add .
+        git commit -m "Auto update case environment"
+
+    - name: Push changes to remote repo
+      uses: ad-m/github-push-action@master
+      with:
+        github_token: '${{ secrets.API_TOKEN_GITHUB }}'
+        directory: target
+        repository: WANdisco/cdh-s3
+        branch: '${{ github.ref }}'
+        force: true
+  adls1-adls2:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Create environment files
+      run: echo "DEPLOYMENT_TYPE=4" > compose.env && ./setup-env.sh && rm compose.env
+
+    - name: Move files to target folder
+      env:
+        README_REPLICATE_FROM: "ADLS Gen1"
+        README_REPLICATE_TO: "ADLS Gen2 storage"
+        README_QUICKSTART: "https://wandisco.github.io/wandisco-documentation/docs/quickstarts/installation/hdp_sandbox_lhv_client-adlsg2_lan"
+      run: |
+        mkdir target
+        . .env
+        IFS=':' read -r -a composeFiles <<< "${COMPOSE_FILE}"
+        envsubst <".github/ci_readme_template.md" >"target/README.md"
+        cp ${composeFiles[@]} *.env .env target/
+
+    - name: Init git repo in target folder
+      working-directory: target
+      run: |
+        git init
+        git config --local user.email "action@github.com"
+        git config --local user.name "GitHub Action"
+        git add .
+        git commit -m "Auto update case environment"
+
+    - name: Push changes to remote repo
+      uses: ad-m/github-push-action@master
+      with:
+        github_token: '${{ secrets.API_TOKEN_GITHUB }}'
+        directory: target
+        repository: WANdisco/adls1-adls2
+        branch: '${{ github.ref }}'
+        force: true
