@@ -482,7 +482,7 @@ fi
     update_var ZONE_B_NAME "Enter a name for the second zone" "${ZONE_B_TYPE}" validate_zone_name_uniq
   else
     if [ "$ZONE_A_TYPE" != "hdp-vanilla" ]; then
-      save_var ZONE_A_NAME "" "$SAVE_ENV"
+      unset ZONE_A_NAME
       update_var ZONE_A_NAME "Enter a name for the first zone" "${ZONE_A_TYPE}-$(shuf -i 1-9999 -n 1)" validate_zone_name
     fi
   fi
