@@ -256,7 +256,7 @@ Please choose from one of the following WANdisco Fusion deployment options:
   2. HDP Sandbox to S3
   3. HDP Sandbox to custom distribution
   4. ADLS Gen1 to Gen2
-  5. S3 and ADLS Gen2 (bi-directional)
+  5. S3 and ADLS Gen2
   6. CDH Sandbox to ADLS Gen2, Live Hive and Databricks integration
   7. CDH Sandbox to S3
   8. CDH Sandbox to custom distribution
@@ -469,18 +469,20 @@ fi
     ;;
   esac
 
-  ## set variables for compose zone a
-
   validate_zone_type "$ZONE_A_TYPE"
   update_var ZONE_A_TYPE "Enter the first zone type" "" validate_zone_type
-  update_var ZONE_A_NAME "Enter the first zone name" "${ZONE_A_TYPE}" validate_zone_name
-
-  ## set variables for compose zone b
 
   validate_zone_type "$ZONE_B_TYPE"
   update_var ZONE_B_TYPE "Enter the second zone type (or NONE to skip)" "" validate_zone_type
+
   if [ "$ZONE_B_TYPE" != NONE ]; then
+    update_var ZONE_A_NAME "Enter a name for the first zone" "${ZONE_A_TYPE}" validate_zone_name
     update_var ZONE_B_NAME "Enter a name for the second zone" "${ZONE_B_TYPE}" validate_zone_name_uniq
+  else
+    if [ "$ZONE_A_TYPE" != "hdp-vanilla" ]; then
+      unset ZONE_A_NAME
+      update_var ZONE_A_NAME "Enter a name for the first zone" "${ZONE_A_TYPE}-$(shuf -i 1-9999 -n 1)" validate_zone_name
+    fi
   fi
 
   ## setup common file
@@ -505,7 +507,6 @@ fi
     save_var FUSION_NODE_ID "$FUSION_NODE_ID" "$SAVE_ENV"
     save_var FUSION_SERVER_HOST "fusion-server-$ZONE_NAME" "$ZONE_ENV"
     save_var INTERNAL_FUSION_SERVER_HOST "fusion-server-$ZONE_NAME" "$ZONE_ENV"
-    save_var IHC_SERVER_HOST "fusion-ihc-server-$ZONE_NAME" "$ZONE_ENV"
 
     # load any existing zone environment
     [ -f "${ZONE_ENV}" ] && load_file "./${ZONE_ENV}"
@@ -594,6 +595,7 @@ fi
   fi
   save_var FUSION_SERVER_HOSTNAMES "$FUSION_SERVER_HOSTNAMES" "${COMMON_ENV}"
 
+
   ## generate the common yml
   set -a
   # load env files in order of increasing priority
@@ -601,7 +603,11 @@ fi
   [ -f "${ZONE_A_ENV}" ] && load_file "./${ZONE_A_ENV}"
   [ -f "./${COMMON_ENV}" ] && load_file "./${COMMON_ENV}"
   export COMMON_ENV
-  envsubst <"docker-compose.common-tmpl.yml" >"${COMPOSE_FILE_COMMON_OUT}"
+
+  if [ "$ZONE_A_TYPE" != "hdp-vanilla" ]; then
+    envsubst <"docker-compose.common-tmpl.yml" >"${COMPOSE_FILE_COMMON_OUT}"
+  fi
+
   set +a
 
   # set compose variables
@@ -609,9 +615,19 @@ fi
   if [ "$ZONE_A_TYPE" != "hdp-vanilla" ]; then
     COMPOSE_FILE="${COMPOSE_FILE}:${COMPOSE_ZONE_A}${COMPOSE_ZONE_B}"
   fi
-  if [ "$USE_SANDBOX" = "y" ]; then
+  if [ "$USE_SANDBOX" = "y" ]  && [ "$ZONE_A_TYPE" = "hdp-vanilla" ]; then
+    COMPOSE_FILE="docker-compose.sandbox-${ZONE_A_TYPE}.yml"
+  elif [ "$USE_SANDBOX" = "y" ] && [ "$ZONE_A_TYPE" != "hdp-vanilla" ]; then
     save_var ZONE_PLUGIN "${ZONE_A_PLUGIN}" sandbox.env
     COMPOSE_FILE="${COMPOSE_FILE}:docker-compose.sandbox-${ZONE_A_TYPE}.yml"
+    case $ZONE_A_TYPE in
+      hdp)
+        envsubst <"docker-compose.sandbox-${ZONE_A_TYPE}-tmpl.yml" >"${COMPOSE_FILE_SANDBOX_HDP_OUT}"
+      ;;
+      cdh)
+        envsubst <"docker-compose.sandbox-${ZONE_A_TYPE}-tmpl.yml" >"${COMPOSE_FILE_SANDBOX_CDH_OUT}"
+      ;;
+    esac
   fi
 
   # write the .env file
