@@ -311,6 +311,7 @@ if [ -z "$RUN_IN_CONTAINER" ]; then
     -e RLWRAP_HOME=$(pwd) \
     -e RUN_IN_CONTAINER=true \
     -e MIGRATOR_ALLOW_STOP_PATH="${MIGRATOR_ALLOW_STOP_PATH:-false}" \
+    -e HOST_IP=$(hostname -I | cut -d' ' -f1) \
     wandisco/setup-env:0.3 rlwrap ./setup-env.sh "$@"
   exit $?
 fi
@@ -350,6 +351,8 @@ fi
 : "${COMPOSE_FILE_INDUCT_OUT:=docker-compose.induction.yml}"
 : "${COMPOSE_FILE_B_PLUGIN_OUT:=docker-compose.zone-b-plugin.yml}"
 : "${COMPOSE_FILE_COMMON_OUT:=docker-compose.common.yml}"
+: "${COMPOSE_FILE_SANDBOX_HDP_OUT:=docker-compose.sandbox-hdp.yml}"
+: "${COMPOSE_FILE_SANDBOX_CDH_OUT:=docker-compose.sandbox-cdh.yml}"
 
 # run everything below in a subshell to avoid leaking env vars
 (
@@ -471,7 +474,6 @@ fi
 
   validate_zone_type "$ZONE_A_TYPE"
   update_var ZONE_A_TYPE "Enter the first zone type" "" validate_zone_type
-
   validate_zone_type "$ZONE_B_TYPE"
   update_var ZONE_B_TYPE "Enter the second zone type (or NONE to skip)" "" validate_zone_type
 
@@ -505,7 +507,15 @@ fi
     # save common vars to zone file
     save_var ZONE_NAME "$ZONE_NAME" "$SAVE_ENV"
     save_var FUSION_NODE_ID "$FUSION_NODE_ID" "$SAVE_ENV"
-    save_var FUSION_SERVER_HOST "fusion-server-$ZONE_NAME" "$ZONE_ENV"
+    
+    if [ "$ZONE_B_TYPE" != NONE ]; then
+      save_var FUSION_SERVER_HOST "fusion-server-$ZONE_NAME" "$ZONE_ENV"
+      save_var IHC_SERVER_HOST "fusion-ihc-server-$ZONE_NAME" "$ZONE_ENV"
+    else
+      save_var FUSION_SERVER_HOST "${HOST_IP}" "$ZONE_ENV"
+      save_var IHC_SERVER_HOST "${HOST_IP}" "$ZONE_ENV"
+    fi
+    
     save_var INTERNAL_FUSION_SERVER_HOST "fusion-server-$ZONE_NAME" "$ZONE_ENV"
 
     # load any existing zone environment
