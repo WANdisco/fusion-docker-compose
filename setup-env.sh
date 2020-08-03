@@ -311,7 +311,6 @@ if [ -z "$RUN_IN_CONTAINER" ]; then
     -e RLWRAP_HOME=$(pwd) \
     -e RUN_IN_CONTAINER=true \
     -e MIGRATOR_ALLOW_STOP_PATH="${MIGRATOR_ALLOW_STOP_PATH:-false}" \
-    -e HOST_IP=$(hostname -I | cut -d' ' -f1) \
     wandisco/setup-env:0.3 rlwrap ./setup-env.sh "$@"
   exit $?
 fi
@@ -512,8 +511,9 @@ fi
       save_var FUSION_SERVER_HOST "fusion-server-$ZONE_NAME" "$ZONE_ENV"
       save_var IHC_SERVER_HOST "fusion-ihc-server-$ZONE_NAME" "$ZONE_ENV"
     else
-      save_var FUSION_SERVER_HOST "${HOST_IP}" "$ZONE_ENV"
-      save_var IHC_SERVER_HOST "${HOST_IP}" "$ZONE_ENV"
+      update_var HOST_ADDRESS "Enter the ip address or DNS name of the current host" "" validate_hostname
+      save_var FUSION_SERVER_HOST "${HOST_ADDRESS}" "$ZONE_ENV"
+      save_var IHC_SERVER_HOST "${HOST_ADDRESS}" "$ZONE_ENV"
     fi
 
     save_var INTERNAL_FUSION_SERVER_HOST "fusion-server-$ZONE_NAME" "$ZONE_ENV"
