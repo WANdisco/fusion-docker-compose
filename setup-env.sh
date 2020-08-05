@@ -350,6 +350,8 @@ fi
 : "${COMPOSE_FILE_INDUCT_OUT:=docker-compose.induction.yml}"
 : "${COMPOSE_FILE_B_PLUGIN_OUT:=docker-compose.zone-b-plugin.yml}"
 : "${COMPOSE_FILE_COMMON_OUT:=docker-compose.common.yml}"
+: "${COMPOSE_FILE_SANDBOX_HDP_OUT:=docker-compose.sandbox-hdp.yml}"
+: "${COMPOSE_FILE_SANDBOX_CDH_OUT:=docker-compose.sandbox-cdh.yml}"
 
 # run everything below in a subshell to avoid leaking env vars
 (
@@ -469,18 +471,19 @@ fi
     ;;
   esac
 
-  ## set variables for compose zone a
-
   validate_zone_type "$ZONE_A_TYPE"
   update_var ZONE_A_TYPE "Enter the first zone type" "" validate_zone_type
-  update_var ZONE_A_NAME "Enter the first zone name" "${ZONE_A_TYPE}" validate_zone_name
-
-  ## set variables for compose zone b
-
   validate_zone_type "$ZONE_B_TYPE"
   update_var ZONE_B_TYPE "Enter the second zone type (or NONE to skip)" "" validate_zone_type
+
   if [ "$ZONE_B_TYPE" != NONE ]; then
+    update_var ZONE_A_NAME "Enter a name for the first zone" "${ZONE_A_TYPE}" validate_zone_name
     update_var ZONE_B_NAME "Enter a name for the second zone" "${ZONE_B_TYPE}" validate_zone_name_uniq
+  else
+    if [ "$ZONE_A_TYPE" != "hdp-vanilla" ]; then
+      unset ZONE_A_NAME
+      update_var ZONE_A_NAME "Enter a name for the first zone" "${ZONE_A_TYPE}-$(shuf -i 1-9999 -n 1)" validate_zone_name
+    fi
   fi
 
   ## setup common file
@@ -503,10 +506,17 @@ fi
     # save common vars to zone file
     save_var ZONE_NAME "$ZONE_NAME" "$SAVE_ENV"
     save_var FUSION_NODE_ID "$FUSION_NODE_ID" "$SAVE_ENV"
-    save_var FUSION_SERVER_HOST "fusion-server-$ZONE_NAME" "$ZONE_ENV"
-    save_var INTERNAL_FUSION_SERVER_HOST "fusion-server-$ZONE_NAME" "$ZONE_ENV"
-    save_var IHC_SERVER_HOST "fusion-ihc-server-$ZONE_NAME" "$ZONE_ENV"
 
+    if [ "$ZONE_B_TYPE" != NONE ]; then
+      save_var FUSION_SERVER_HOST "fusion-server-$ZONE_NAME" "$ZONE_ENV"
+      save_var IHC_SERVER_HOST "fusion-ihc-server-$ZONE_NAME" "$ZONE_ENV"
+    else
+      update_var HOST_ADDRESS "Enter the ip address or DNS name of the current host" "" validate_hostname
+      save_var FUSION_SERVER_HOST "${HOST_ADDRESS}" "$ZONE_ENV"
+      save_var IHC_SERVER_HOST "${HOST_ADDRESS}" "$ZONE_ENV"
+    fi
+
+    save_var INTERNAL_FUSION_SERVER_HOST "fusion-server-$ZONE_NAME" "$ZONE_ENV"
     # load any existing zone environment
     [ -f "${ZONE_ENV}" ] && load_file "./${ZONE_ENV}"
     # run the common fusion zone config
@@ -619,6 +629,14 @@ fi
   elif [ "$USE_SANDBOX" = "y" ] && [ "$ZONE_A_TYPE" != "hdp-vanilla" ]; then
     save_var ZONE_PLUGIN "${ZONE_A_PLUGIN}" sandbox.env
     COMPOSE_FILE="${COMPOSE_FILE}:docker-compose.sandbox-${ZONE_A_TYPE}.yml"
+    case $ZONE_A_TYPE in
+      hdp)
+        envsubst <"docker-compose.sandbox-${ZONE_A_TYPE}-tmpl.yml" >"${COMPOSE_FILE_SANDBOX_HDP_OUT}"
+      ;;
+      cdh)
+        envsubst <"docker-compose.sandbox-${ZONE_A_TYPE}-tmpl.yml" >"${COMPOSE_FILE_SANDBOX_CDH_OUT}"
+      ;;
+    esac
   fi
 
   # write the .env file
