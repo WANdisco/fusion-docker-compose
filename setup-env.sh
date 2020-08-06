@@ -507,17 +507,17 @@ fi
     # save common vars to zone file
     save_var ZONE_NAME "$ZONE_NAME" "$SAVE_ENV"
     save_var FUSION_NODE_ID "$FUSION_NODE_ID" "$SAVE_ENV"
-    
+
     if [ "$ZONE_B_TYPE" != NONE ]; then
       save_var FUSION_SERVER_HOST "fusion-server-$ZONE_NAME" "$ZONE_ENV"
       save_var IHC_SERVER_HOST "fusion-ihc-server-$ZONE_NAME" "$ZONE_ENV"
     else
-      save_var FUSION_SERVER_HOST "${HOST_IP}" "$ZONE_ENV"
-      save_var IHC_SERVER_HOST "${HOST_IP}" "$ZONE_ENV"
+      update_var HOST_ADDRESS "Enter the ip address or DNS name of the current host" "" validate_hostname
+      save_var FUSION_SERVER_HOST "${HOST_ADDRESS}" "$ZONE_ENV"
+      save_var IHC_SERVER_HOST "${HOST_ADDRESS}" "$ZONE_ENV"
     fi
-    
-    save_var INTERNAL_FUSION_SERVER_HOST "fusion-server-$ZONE_NAME" "$ZONE_ENV"
 
+    save_var INTERNAL_FUSION_SERVER_HOST "fusion-server-$ZONE_NAME" "$ZONE_ENV"
     # load any existing zone environment
     [ -f "${ZONE_ENV}" ] && load_file "./${ZONE_ENV}"
     # run the common fusion zone config
