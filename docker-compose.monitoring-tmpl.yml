@@ -1,0 +1,52 @@
+#################################################################################
+# Copyright (c) 2014-2019 WANdisco
+#
+#   Licensed under the Apache License, Version 2.0 (the "License");
+#   you may not use this file except in compliance with the License.
+#   You may obtain a copy of the License at
+#   http://www.apache.org/licenses/LICENSE-2.0
+#
+#   Apache License, Version 2.0
+#
+################################################################################
+#
+# Note: while version 3.7 is technically compatible with Docker 18.06 and
+# higher, this project was tested with only Docker 18.09 as of 2019-08-06.
+#
+################################################################################
+
+version: "3.7"
+
+services:
+  nagios:
+    image: wandisco/nagios:4.4.6-1
+    restart: unless-stopped
+    env_file:
+      - "${COMMON_ENV}"
+    ports:
+      - 18081:80
+    networks:
+      - fusion
+
+  graphite:
+    image: graphiteapp/graphite-statsd:1.1.7-6
+    restart: unless-stopped
+    env_file:
+      - "${COMMON_ENV}"
+    ports:
+      - 18082:80
+    networks:
+      - fusion
+
+  grafana:
+    image: wandisco/grafana:7.1.2-1
+    restart: unless-stopped
+    env_file:
+      - "${COMMON_ENV}"
+    environment:
+      - GRAPHITE_HOST=graphite
+      - GRAPHITE_PORT=80
+    ports:
+      - 18083:3000
+    networks:
+      - fusion
