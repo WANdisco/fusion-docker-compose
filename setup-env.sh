@@ -534,6 +534,9 @@ fi
     [ -f "${ZONE_ENV}" ] && load_file "./${ZONE_ENV}"
     # run the common fusion zone config
     . "./common-fusion.conf"
+
+    save_var ZONE_A_FUSION_IHC_SERVER_PORT "${FUSION_IHC_SERVER_PORT}" "$COMMON_ENV"
+
     # run the zone type config
     . "./zone-${ZONE_TYPE}.conf"
     # re-load variables
@@ -580,6 +583,9 @@ fi
     [ -f "${ZONE_ENV}" ] && load_file "./${ZONE_ENV}"
     # run the common fusion zone config
     . "./common-fusion.conf"
+
+    save_var ZONE_B_FUSION_IHC_SERVER_PORT "${FUSION_IHC_SERVER_PORT}" "$COMMON_ENV"
+
     # run the zone type config
     . "./zone-${ZONE_TYPE}.conf"
     # re-load variables
