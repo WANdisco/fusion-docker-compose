@@ -19,10 +19,19 @@ version: "3.7"
 
 services:
   nagios:
-    image: wandisco/nagios:4.4.6-v0.3
+    image: wandisco/nagios:4.4.6-v0.4
     restart: unless-stopped
+    volumes:
+      - nagios-etc:/opt/nagios/etc
+      - nagios-var:/opt/nagios/var
+      - nagiosgraph-var:/opt/nagiosgraph/var
     env_file:
       - "${COMMON_ENV}"
+    environment:
+      - FUSION_LICENSE_EXPIRE_WARNING=60
+      - FUSION_LICENSE_EXPIRE_CRITICAL=30
+      - FUSION_LICENSE_USAGE_PERCENT_WARNING=75
+      - FUSION_LICENSE_USAGE_PERCENT_CRITICAL=90
     ports:
       - 18081:80
     networks:
@@ -50,3 +59,8 @@ services:
       - 18083:3000
     networks:
       - fusion
+
+volumes:
+  nagios-etc:
+  nagios-var:
+  nagiosgraph-var:
