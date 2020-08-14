@@ -331,6 +331,9 @@ while getopts 'af:hsm' option; do
     m)
       opt_m=1
       MONITORING_MESSAGE="(with monitoring example)"
+      JVM_ARG="-Dcom.sun.management.jmxremote -Dcom.sun.management.jmxremote.port=9010 \
+        -Dcom.sun.management.jmxremote.rmi.port=9010 -Dcom.sun.management.jmxremote.local.only=false \
+        -Dcom.sun.management.jmxremote.authenticate=false -Dcom.sun.management.jmxremote.ssl=false"
     ;;
     ?) exit 1;;
   esac
@@ -389,6 +392,8 @@ fi
     1|2|6|7)
       if [ "$opt_m" = "1" ]; then
         save_var USE_MONITORING "y" "$SAVE_ENV"
+        save_var JVM_ARG "${JVM_ARG}" "$ZONE_A_ENV"
+        save_var JVM_ARG "${JVM_ARG}" "$ZONE_B_ENV"
       fi
     ;;&
     1|2)
