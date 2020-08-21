@@ -19,15 +19,17 @@ version: "3.7"
 
 services:
   nagios:
-    image: wandisco/nagios:4.4.6-v0.6
+    image: wandisco/nagios:4.4.6-v0.7
     restart: unless-stopped
     volumes:
-      - nagios-etc:/opt/nagios/etc
       - nagios-var:/opt/nagios/var
       - nagiosgraph-var:/opt/nagiosgraph/var
+      - logging-${ZONE_A_NAME}:/logs/${ZONE_A_NAME}
+      - logging-${ZONE_B_NAME}:/logs/${ZONE_B_NAME}
     env_file:
       - "${COMMON_ENV}"
     environment:
+      - LOG_ERROR_CRITICAL_THRESHOLD=1
       - FUSION_LICENSE_EXPIRE_WARNING=60
       - FUSION_LICENSE_EXPIRE_CRITICAL=30
       - FUSION_LICENSE_USAGE_PERCENT_WARNING=75
@@ -75,7 +77,8 @@ services:
       - fusion
 
 volumes:
-  nagios-etc:
   nagios-var:
   nagiosgraph-var:
   grafana-storage:
+  logging-${ZONE_A_NAME}:
+  logging-${ZONE_B_NAME}:
