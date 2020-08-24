@@ -52,8 +52,6 @@ services:
       - fusion-${ZONE_NAME}-opt-wandisco-fusion-server-dcone:/opt/wandisco/fusion/server/dcone
       - fusion-${ZONE_NAME}-opt-wandisco-fusion-ui-server-properties:/opt/wandisco/fusion-ui-server/properties
       - fusion-${ZONE_NAME}-etc-wandisco:/etc/wandisco
-      - fusion-${ZONE_NAME}-restart:/restart
-      - fusion-license:/etc/wandisco/license
 
   # Fusion IHC Server
   fusion-ihc-server-${ZONE_NAME}:
@@ -73,8 +71,7 @@ services:
       - logging-${ZONE_NAME}:/var/log/fusion
       - fusion-${ZONE_NAME}-opt-wandisco-fusion-server-checkpoint:/opt/wandisco/fusion/server/checkpoint
       - fusion-${ZONE_NAME}-etc-wandisco:/etc/wandisco
-      - fusion-${ZONE_NAME}-restart:/restart
-      - fusion-license:/etc/wandisco/license
+      - fusion-${ZONE_NAME}-restart:/var/run/wandisco/ihc
 
   # Fusion Server
   fusion-server-${ZONE_NAME}:
@@ -98,8 +95,7 @@ services:
       - fusion-${ZONE_NAME}-opt-wandisco-fusion-server-dcone:/opt/wandisco/fusion/server/dcone
       - fusion-${ZONE_NAME}-opt-wandisco-fusion-ui-server-properties:/opt/wandisco/fusion-ui-server/properties
       - fusion-${ZONE_NAME}-etc-wandisco:/etc/wandisco
-      - fusion-${ZONE_NAME}-restart:/restart
-      - fusion-license:/etc/wandisco/license
+      - fusion-${ZONE_NAME}-restart:/var/run/wandisco/ihc
 
 networks:
   # One Docker network is shared between both zones
@@ -118,5 +114,3 @@ volumes:
   fusion-${ZONE_NAME}-etc-wandisco:
   fusion-${ZONE_NAME}-opt-wandisco-fusion-ui-server-properties:
   fusion-${ZONE_NAME}-etc-wandisco:
-
-  fusion-license:

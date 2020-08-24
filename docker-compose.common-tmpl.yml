@@ -44,13 +44,10 @@ services:
     env_file:
       - "${COMMON_ENV}"
     volumes:
-      - logging-oneui-server:/var/log/fusion/
+      - logging-oneui-server:/var/log/wandisco/
       - fusion-oneui-h2db:/h2db
-      - fusion-${ZONE_A_NAME}-restart:/etc/wandisco/fusion/server/${ZONE_A_NAME}
-      - fusion-${ZONE_B_NAME}-restart:/etc/wandisco/fusion/server/${ZONE_B_NAME}
       - fusion-${ZONE_A_NAME}-etc-wandisco:/fusionConfig/${ZONE_A_NAME}
       - fusion-${ZONE_B_NAME}-etc-wandisco:/fusionConfig/${ZONE_B_NAME}
-      - fusion-license:/etc/wandisco/license
 
 volumes:
   # Named logging volume
@@ -59,10 +56,9 @@ volumes:
   # h2db database for UI Server
   fusion-oneui-h2db:
 
-  # Used for restarting fusion-server, fusion-ui-server and ihc servers
-  fusion-${ZONE_A_NAME}-restart:
-  fusion-${ZONE_B_NAME}-restart:
   fusion-${ZONE_A_NAME}-etc-wandisco:
   fusion-${ZONE_B_NAME}-etc-wandisco:
 
-  fusion-license:
+# Used for restarting ihc servers
+  fusion-${ZONE_A_NAME}-restart:
+  fusion-${ZONE_B_NAME}-restart:

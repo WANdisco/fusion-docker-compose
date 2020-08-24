@@ -17,7 +17,7 @@ version: "3.7"
 
 services:
   sandbox-hdp:
-    image: wandisco/sandbox-hdp:2.15.2.1-4
+    image: wandisco/sandbox-hdp:2.15.2.1-5
     privileged: true
     command: ["/sbin/init"]
     env_file: sandbox.env
@@ -26,6 +26,9 @@ services:
       - "8080:8080"
       - "50070:50070"
       - "50010:50010"
+    external_links:
+      - fusion-server-${ZONE_NAME}:fusion-server-sandbox-hdp
+      - fusion-livehive-proxy-${ZONE_NAME}:fusion-livehive-proxy-sandbox-hdp
     networks:
       - fusion
     hostname: sandbox-hdp
@@ -35,6 +38,6 @@ services:
         soft: 170000
         hard: 190000
 
-  fusion-server-sandbox-hdp:
+  fusion-server-${ZONE_NAME}:
     depends_on:
       - sandbox-hdp
