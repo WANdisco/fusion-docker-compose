@@ -23,7 +23,7 @@ services:
       - logging-${ZONE_NAME}:/debug/${ZONE_NAME}
 
   fusion-livehive-proxy-${ZONE_NAME}:
-    image: wandisco/fusion-livehive-proxy-${PLATFORM}:${FUSION_LIVEHIVE_VERSION}-${FUSION_LIVEHIVE_IMAGE_RELEASE}
+    image: ${FUS_REGISTRY}/fusion-livehive-proxy-${PLATFORM}:${FUSION_LIVEHIVE_VERSION}-${FUSION_LIVEHIVE_IMAGE_RELEASE}
     depends_on:
       - fusion-server-${ZONE_NAME}
     networks:

@@ -19,15 +19,17 @@ version: "3.7"
 
 services:
   nagios:
-    image: wandisco/nagios:4.4.6-v0.5
+    image: wandisco/nagios:4.4.6-v0.9
     restart: unless-stopped
     volumes:
-      - nagios-etc:/opt/nagios/etc
       - nagios-var:/opt/nagios/var
       - nagiosgraph-var:/opt/nagiosgraph/var
+      - logging-${ZONE_A_NAME}:/logs/${ZONE_A_NAME}
+      - logging-${ZONE_B_NAME}:/logs/${ZONE_B_NAME}
     env_file:
       - "${COMMON_ENV}"
     environment:
+      - LOG_ERROR_CRITICAL_THRESHOLD=1
       - FUSION_LICENSE_EXPIRE_WARNING=60
       - FUSION_LICENSE_EXPIRE_CRITICAL=30
       - FUSION_LICENSE_USAGE_PERCENT_WARNING=75
@@ -37,14 +39,27 @@ services:
     networks:
       - fusion
 
-  collectd:
-    image: wandisco/collectd:v0.1
+  collectd-host:
+    image: wandisco/collectd:v0.2
     environment:
       - GRAPHITE_HOST=localhost
       - GRAPHITE_PORT=2003
       - HOST_NAME=localhost
     restart: unless-stopped
     network_mode: host
+
+  collectd-bridge:
+    image: wandisco/collectd:v0.2
+    env_file:
+      - "common.env"
+    environment:
+      - ENABLE_JMX=1
+      - GRAPHITE_HOST=graphite
+      - GRAPHITE_PORT=2003
+      - HOST_NAME=collectd-bridge
+    restart: unless-stopped
+    networks:
+      - fusion
 
   graphite:
     image: graphiteapp/graphite-statsd:1.1.7-6
@@ -58,7 +73,7 @@ services:
       - fusion
 
   grafana:
-    image: wandisco/grafana:7.1.2-v0.2
+    image: wandisco/grafana:7.1.2-v0.3
     restart: unless-stopped
     volumes:
       - grafana-storage:/var/lib/grafana
@@ -75,7 +90,8 @@ services:
       - fusion
 
 volumes:
-  nagios-etc:
   nagios-var:
   nagiosgraph-var:
   grafana-storage:
+  logging-${ZONE_A_NAME}:
+  logging-${ZONE_B_NAME}:

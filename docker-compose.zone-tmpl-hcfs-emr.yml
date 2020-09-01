@@ -35,7 +35,7 @@ services:
 
   # Fusion UI Server
   fusion-ui-server-${ZONE_NAME}:
-    image: wandisco/fusion-ui-server-${PLATFORM}:${FUSION_BASE_VERSION}-${FUSION_IMAGE_RELEASE}
+    image: ${FUS_REGISTRY}/fusion-ui-server-${PLATFORM}:${FUSION_BASE_VERSION}-${FUSION_IMAGE_RELEASE}
     depends_on:
       - fusion-server-${ZONE_NAME}
     networks:
@@ -56,7 +56,7 @@ services:
 
   # Fusion IHC Server
   fusion-ihc-server-${ZONE_NAME}:
-    image: wandisco/fusion-ihc-server-${PLATFORM}:${FUSION_BASE_VERSION}-${FUSION_IMAGE_RELEASE}
+    image: ${FUS_REGISTRY}/fusion-ihc-server-${PLATFORM}:${FUSION_BASE_VERSION}-${FUSION_IMAGE_RELEASE}
     depends_on:
       - fusion-server-${ZONE_NAME}
     networks:
@@ -78,7 +78,7 @@ services:
 
   # Fusion Server
   fusion-server-${ZONE_NAME}:
-    image: wandisco/fusion-server-${PLATFORM}:${FUSION_BASE_VERSION}-${FUSION_IMAGE_RELEASE}
+    image: ${FUS_REGISTRY}/fusion-server-${PLATFORM}:${FUSION_BASE_VERSION}-${FUSION_IMAGE_RELEASE}
     networks:
       - fusion
     # Note: standard ports have been incremented by 500 to remove conflicts between Zone 1 and Zone 2
