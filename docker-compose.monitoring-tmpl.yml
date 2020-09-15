@@ -1,0 +1,81 @@
+#################################################################################
+# Copyright (c) 2014-2019 WANdisco
+#
+#   Licensed under the Apache License, Version 2.0 (the "License");
+#   you may not use this file except in compliance with the License.
+#   You may obtain a copy of the License at
+#   http://www.apache.org/licenses/LICENSE-2.0
+#
+#   Apache License, Version 2.0
+#
+################################################################################
+#
+# Note: while version 3.7 is technically compatible with Docker 18.06 and
+# higher, this project was tested with only Docker 18.09 as of 2019-08-06.
+#
+################################################################################
+
+version: "3.7"
+
+services:
+  nagios:
+    image: wandisco/nagios:4.4.6-v0.5
+    restart: unless-stopped
+    volumes:
+      - nagios-etc:/opt/nagios/etc
+      - nagios-var:/opt/nagios/var
+      - nagiosgraph-var:/opt/nagiosgraph/var
+    env_file:
+      - "${COMMON_ENV}"
+    environment:
+      - FUSION_LICENSE_EXPIRE_WARNING=60
+      - FUSION_LICENSE_EXPIRE_CRITICAL=30
+      - FUSION_LICENSE_USAGE_PERCENT_WARNING=75
+      - FUSION_LICENSE_USAGE_PERCENT_CRITICAL=90
+    ports:
+      - 18081:80
+    networks:
+      - fusion
+
+  collectd:
+    image: wandisco/collectd:v0.1
+    environment:
+      - GRAPHITE_HOST=localhost
+      - GRAPHITE_PORT=2003
+      - HOST_NAME=localhost
+    restart: unless-stopped
+    network_mode: host
+
+  graphite:
+    image: graphiteapp/graphite-statsd:1.1.7-6
+    restart: unless-stopped
+    env_file:
+      - "${COMMON_ENV}"
+    ports:
+      - 2003:2003
+      - 18082:80
+    networks:
+      - fusion
+
+  grafana:
+    image: wandisco/grafana:7.1.2-v0.2
+    restart: unless-stopped
+    volumes:
+      - grafana-storage:/var/lib/grafana
+    env_file:
+      - "${COMMON_ENV}"
+    environment:
+      - GF_SERVER_HTTP_PORT=18083
+      - GF_LOG_MODE=console file
+      - GRAPHITE_HOST=graphite
+      - GRAPHITE_PORT=80
+    ports:
+      - 18083:18083
+    networks:
+      - fusion
+
+volumes:
+  nagios-etc:
+  nagios-var:
+  nagiosgraph-var:
+  grafana-storage:

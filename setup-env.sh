@@ -50,6 +50,7 @@ usage() {
   echo " -f file: main env file to use (default: ${opt_f})"
   echo " -h: this help message"
   echo " -s: skip validation of inputs"
+  echo " -m: deploy monitoring example (only for HDP/CDH main use cases)"
   [ "$opt_h" = "1" ] && exit 0 || exit 1
 }
 
@@ -252,13 +253,13 @@ validate_deployment_type() {
 
 Please choose from one of the following WANdisco Fusion deployment options:
 
-  1. HDP Sandbox to ADLS Gen2, Live Hive and Databricks integration
-  2. HDP Sandbox to S3
+  1. HDP Sandbox to ADLS Gen2, Live Hive and Databricks integration ${MONITORING_MESSAGE}
+  2. HDP Sandbox to S3 ${MONITORING_MESSAGE}
   3. HDP Sandbox to custom distribution
   4. ADLS Gen1 to Gen2
   5. S3 and ADLS Gen2
-  6. CDH Sandbox to ADLS Gen2, Live Hive and Databricks integration
-  7. CDH Sandbox to S3
+  6. CDH Sandbox to ADLS Gen2, Live Hive and Databricks integration ${MONITORING_MESSAGE}
+  7. CDH Sandbox to S3 ${MONITORING_MESSAGE}
   8. CDH Sandbox to custom distribution
   9. Custom deployment
 
@@ -319,13 +320,21 @@ opt_f="compose.env"
 opt_h=0
 opt_a=0
 opt_s=0
+opt_m=0
 
-while getopts 'af:hs' option; do
+while getopts 'af:hsm' option; do
   case $option in
     a) opt_a=1;;
     f) opt_f="$OPTARG";;
     h) opt_h=1;;
     s) opt_s=1;;
+    m)
+      opt_m=1
+      MONITORING_MESSAGE="(with monitoring example)"
+      JVM_ARG="-Dcom.sun.management.jmxremote -Dcom.sun.management.jmxremote.port=9010 \
+        -Dcom.sun.management.jmxremote.rmi.port=9010 -Dcom.sun.management.jmxremote.local.only=false \
+        -Dcom.sun.management.jmxremote.authenticate=false -Dcom.sun.management.jmxremote.ssl=false"
+    ;;
     ?) exit 1;;
   esac
 done
@@ -352,6 +361,7 @@ fi
 : "${COMPOSE_FILE_COMMON_OUT:=docker-compose.common.yml}"
 : "${COMPOSE_FILE_SANDBOX_HDP_OUT:=docker-compose.sandbox-hdp.yml}"
 : "${COMPOSE_FILE_SANDBOX_CDH_OUT:=docker-compose.sandbox-cdh.yml}"
+: "${COMPOSE_FILE_MONITORING_OUT:=docker-compose.monitoring.yml}"
 
 # run everything below in a subshell to avoid leaking env vars
 (
@@ -378,6 +388,13 @@ fi
   case $DEPLOYMENT_TYPE in
     *)
       save_var DEPLOYMENT_TYPE "${DEPLOYMENT_TYPE}" "$SAVE_ENV"
+    ;;&
+    1|2|6|7)
+      if [ "$opt_m" = "1" ]; then
+        save_var USE_MONITORING "y" "$SAVE_ENV"
+        save_var JVM_ARG "${JVM_ARG}" "$ZONE_A_ENV"
+        save_var JVM_ARG "${JVM_ARG}" "$ZONE_B_ENV"
+      fi
     ;;&
     1|2)
       save_var USE_SANDBOX "y" "$SAVE_ENV"
@@ -521,6 +538,9 @@ fi
     [ -f "${ZONE_ENV}" ] && load_file "./${ZONE_ENV}"
     # run the common fusion zone config
     . "./common-fusion.conf"
+
+    save_var ZONE_A_FUSION_IHC_SERVER_PORT "${FUSION_IHC_SERVER_PORT}" "$COMMON_ENV"
+
     # run the zone type config
     . "./zone-${ZONE_TYPE}.conf"
     # re-load variables
@@ -567,6 +587,9 @@ fi
     [ -f "${ZONE_ENV}" ] && load_file "./${ZONE_ENV}"
     # run the common fusion zone config
     . "./common-fusion.conf"
+
+    save_var ZONE_B_FUSION_IHC_SERVER_PORT "${FUSION_IHC_SERVER_PORT}" "$COMMON_ENV"
+
     # run the zone type config
     . "./zone-${ZONE_TYPE}.conf"
     # re-load variables
@@ -629,6 +652,10 @@ fi
   elif [ "$USE_SANDBOX" = "y" ] && [ "$ZONE_A_TYPE" != "hdp-vanilla" ]; then
     save_var ZONE_PLUGIN "${ZONE_A_PLUGIN}" sandbox.env
     COMPOSE_FILE="${COMPOSE_FILE}:docker-compose.sandbox-${ZONE_A_TYPE}.yml"
+    if [ "$USE_MONITORING" = "y" ]; then
+      envsubst <"docker-compose.monitoring-tmpl.yml" >"${COMPOSE_FILE_MONITORING_OUT}"
+      COMPOSE_FILE="${COMPOSE_FILE}:${COMPOSE_FILE_MONITORING_OUT}"
+    fi
     case $ZONE_A_TYPE in
       hdp)
         envsubst <"docker-compose.sandbox-${ZONE_A_TYPE}-tmpl.yml" >"${COMPOSE_FILE_SANDBOX_HDP_OUT}"
