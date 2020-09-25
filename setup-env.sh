@@ -688,12 +688,12 @@ fi
       ;;
     esac
 
-    echo "  OneUI:  ${ONEUI_SERVER_PORT}"
+    echo "  LiveData UI: ${LIVEDATA_UI_PORT}"
     echo
     echo "Please be aware that it may take some time for these ports to be fully available."
   else
     echo "Once Fusion starts the UI will be available on:"
-    echo "  http://${DOCKER_HOSTNAME}:${ONEUI_SERVER_PORT} or http://ip-address:${ONEUI_SERVER_PORT} using the IP of your docker host."
+    echo "  http://${DOCKER_HOSTNAME}:${LIVEDATA_UI_PORT} or http://ip-address:${LIVEDATA_UI_PORT} using the IP of your docker host."
   fi
 
   echo
