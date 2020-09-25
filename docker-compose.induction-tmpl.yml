@@ -20,7 +20,7 @@ version: "3.7"
 services:
   # This service performs the induction process as a Docker container job at launch.
   induction:
-    image: wandisco/fusion-server-${PLATFORM}:${FUSION_BASE_VERSION}-${FUSION_IMAGE_RELEASE}
+    image: ${FUS_REGISTRY}/fusion-server-${PLATFORM}:${FUSION_BASE_VERSION}-${FUSION_IMAGE_RELEASE}
     networks:
       - fusion
     environment:

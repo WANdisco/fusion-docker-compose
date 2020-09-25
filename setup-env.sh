@@ -312,6 +312,7 @@ if [ -z "$RUN_IN_CONTAINER" ]; then
     -e RLWRAP_HOME=$(pwd) \
     -e RUN_IN_CONTAINER=true \
     -e MIGRATOR_ALLOW_STOP_PATH="${MIGRATOR_ALLOW_STOP_PATH:-false}" \
+    -e FUS_REGISTRY="${FUS_REGISTRY:-wandisco}" \
     wandisco/setup-env:0.3 rlwrap ./setup-env.sh "$@"
   exit $?
 fi
@@ -548,7 +549,7 @@ fi
     [ -f "${ZONE_ENV}" ] && load_file "./${ZONE_ENV}"
     COMPOSE_ZONE_A="${COMPOSE_FILE_A_OUT}"
     # configure plugins
-    update_var ZONE_A_PLUGIN "Select plugin for ${ZONE_NAME} (livehive, or NONE to skip)" "NONE" validate_plugin
+    update_var ZONE_A_PLUGIN "Select plugin for ${ZONE_NAME} (livehive, databricks or NONE to skip)" "NONE" validate_plugin
     ZONE_PLUGIN=${ZONE_A_PLUGIN}
     save_var ZONE_PLUGIN "$ZONE_PLUGIN" "$ZONE_ENV"
     if [ "$ZONE_A_PLUGIN" != "NONE" ]; then
@@ -597,7 +598,7 @@ fi
     [ -f "${ZONE_ENV}" ] && load_file "./${ZONE_ENV}"
     COMPOSE_ZONE_B="${COMPOSE_FILE_B_OUT}"
     # configure plugins
-    update_var ZONE_B_PLUGIN "Select plugin for ${ZONE_NAME} (livehive, or NONE to skip)" "NONE" validate_plugin
+    update_var ZONE_B_PLUGIN "Select plugin for ${ZONE_NAME} (livehive, databricks or NONE to skip)" "NONE" validate_plugin
     ZONE_PLUGIN=${ZONE_B_PLUGIN}
     save_var ZONE_PLUGIN "$ZONE_PLUGIN" "$ZONE_ENV"
     if [ "$ZONE_B_PLUGIN" != "NONE" ]; then
