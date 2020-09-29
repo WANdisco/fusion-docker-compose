@@ -660,7 +660,7 @@ fi
     COMPOSE_FILE="${COMPOSE_FILE_SANDBOX_HDP_VANILLA_OUT}"
     if [ "$USE_LDM" = "y" ]; then
       COMPOSE_FILE="${COMPOSE_FILE}:${COMPOSE_FILE_COMMON_OUT}:${COMPOSE_FILE_LDM_OUT}"
-      save_var LDM_SERVERS "http://livedata-migrator:18080" "${COMMON_ENV}"
+      save_var LDM_SERVERS "livedata-migrator:18080" "${COMMON_ENV}"
     else
       COMPOSE_FILE="${COMPOSE_FILE}:${COMPOSE_FILE_SANDBOX_HDP_VANILLA_EXTENDED_OUT}"
     fi
