@@ -229,7 +229,7 @@ validate_zone_name_uniq() {
 validate_hdp_custom_type() {
   type="$1"
   case "$type" in
-    1|2)     return 0;;
+    1|2|3)     return 0;;
   esac
   # for anything not matched by the above case, validation failed
   cat <<EOZONE
@@ -238,6 +238,7 @@ Please choose from one of the following zone types:
 
   1. HDP Sandbox with custom distribution
   2. HDP Sandbox Vanilla
+  3. HDP Sandbox Vanilla with LiveData Migrator
 
 EOZONE
   return 1
@@ -363,6 +364,9 @@ fi
 : "${COMPOSE_FILE_SANDBOX_HDP_OUT:=docker-compose.sandbox-hdp.yml}"
 : "${COMPOSE_FILE_SANDBOX_CDH_OUT:=docker-compose.sandbox-cdh.yml}"
 : "${COMPOSE_FILE_MONITORING_OUT:=docker-compose.monitoring.yml}"
+: "${COMPOSE_FILE_LDM_OUT:=docker-compose.livedata-migrator.yml}"
+: "${COMPOSE_FILE_SANDBOX_HDP_VANILLA_OUT:=docker-compose.sandbox-hdp-vanilla.yml}"
+: "${COMPOSE_FILE_SANDBOX_HDP_VANILLA_EXTENDED_OUT:=docker-compose.sandbox-hdp-vanilla-extended.yml}"
 
 # run everything below in a subshell to avoid leaking env vars
 (
@@ -428,12 +432,15 @@ fi
           save_var HIVE_METASTORE_HOSTNAME "sandbox-hdp" "$ZONE_A_ENV"
           save_var HIVE_METASTORE_PORT "9083" "$ZONE_A_ENV"
         ;;
-        2)
+        2|3)
           save_var USE_SANDBOX "y" "$SAVE_ENV"
           save_var DOCKER_HOSTNAME "hdp_vanilla-custom" "$SAVE_ENV"
           save_var ZONE_A_TYPE "hdp-vanilla" "$SAVE_ENV"
           save_var ZONE_A_NAME "sandbox-hdp-vanilla" "$SAVE_ENV"
           save_var ZONE_B_TYPE "NONE" "$SAVE_ENV"
+        ;;&
+        3)
+          save_var USE_LDM "y" "$SAVE_ENV"
         ;;
       esac
     ;;&
@@ -637,7 +644,7 @@ fi
   [ -f "./${COMMON_ENV}" ] && load_file "./${COMMON_ENV}"
   export COMMON_ENV
 
-  if [ "$ZONE_A_TYPE" != "hdp-vanilla" ]; then
+  if [[ "$ZONE_A_TYPE" != "hdp-vanilla" || "$USE_LDM" = "y" ]]; then
     envsubst <"docker-compose.common-tmpl.yml" >"${COMPOSE_FILE_COMMON_OUT}"
   fi
 
@@ -649,7 +656,13 @@ fi
     COMPOSE_FILE="${COMPOSE_FILE}:${COMPOSE_ZONE_A}${COMPOSE_ZONE_B}"
   fi
   if [ "$USE_SANDBOX" = "y" ]  && [ "$ZONE_A_TYPE" = "hdp-vanilla" ]; then
-    COMPOSE_FILE="docker-compose.sandbox-${ZONE_A_TYPE}.yml"
+    COMPOSE_FILE="${COMPOSE_FILE_SANDBOX_HDP_VANILLA_OUT}"
+    if [ "$USE_LDM" = "y" ]; then
+      COMPOSE_FILE="${COMPOSE_FILE}:${COMPOSE_FILE_COMMON_OUT}:${COMPOSE_FILE_LDM_OUT}"
+      save_var LDM_SERVERS "http://livedata-migrator:18080" "${COMMON_ENV}"
+    else
+      COMPOSE_FILE="${COMPOSE_FILE}:${COMPOSE_FILE_SANDBOX_HDP_VANILLA_EXTENDED_OUT}"
+    fi
   elif [ "$USE_SANDBOX" = "y" ] && [ "$ZONE_A_TYPE" != "hdp-vanilla" ]; then
     save_var ZONE_PLUGIN "${ZONE_A_PLUGIN}" sandbox.env
     COMPOSE_FILE="${COMPOSE_FILE}:docker-compose.sandbox-${ZONE_A_TYPE}.yml"
@@ -688,12 +701,12 @@ fi
       ;;
     esac
 
-    echo "  OneUI:  ${ONEUI_SERVER_PORT}"
+    echo "  LiveData UI: ${LIVEDATA_UI_PORT}"
     echo
     echo "Please be aware that it may take some time for these ports to be fully available."
   else
     echo "Once Fusion starts the UI will be available on:"
-    echo "  http://${DOCKER_HOSTNAME}:${ONEUI_SERVER_PORT} or http://ip-address:${ONEUI_SERVER_PORT} using the IP of your docker host."
+    echo "  http://${DOCKER_HOSTNAME}:${LIVEDATA_UI_PORT} or http://ip-address:${LIVEDATA_UI_PORT} using the IP of your docker host."
   fi
 
   echo
