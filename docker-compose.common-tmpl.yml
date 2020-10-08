@@ -23,7 +23,7 @@ services:
     command: ["tail", "-f", "/dev/null"]
     working_dir: "/debug"
     volumes:
-      - logging-oneui-server:/debug/oneui-server
+      - logging-livedata-ui:/debug/livedata-ui
     networks:
       - fusion
 
@@ -31,30 +31,30 @@ services:
 #
 # Note: this component can be run in either zone, so one is chosen arbitrarily
 
-  # Fusion OneUI Server
-  fusion-oneui-server:
-    image: ${FUS_REGISTRY}/fusion-oneui:${FUSION_ONEUI_VERSION}
+  # LiveData UI
+  livedata-ui:
+    image: ${FUS_REGISTRY}/livedata-ui:${LIVEDATA_UI_VERSION}
     restart: unless-stopped
     networks:
       - fusion
     ports:
-      - ${ONEUI_SERVER_PORT}:8081
+      - ${LIVEDATA_UI_PORT}:8081
     environment:
       - FUSION_SERVER_HOSTNAMES=${FUSION_SERVER_HOSTNAMES}
     env_file:
       - "${COMMON_ENV}"
     volumes:
-      - logging-oneui-server:/var/log/wandisco/
-      - fusion-oneui-h2db:/h2db
+      - logging-livedata-ui:/var/log/wandisco/
+      - fusion-livedata-ui-h2db:/h2db
       - fusion-${ZONE_A_NAME}-etc-wandisco:/fusionConfig/${ZONE_A_NAME}
       - fusion-${ZONE_B_NAME}-etc-wandisco:/fusionConfig/${ZONE_B_NAME}
 
 volumes:
   # Named logging volume
-  logging-oneui-server:
+  logging-livedata-ui:
 
   # h2db database for UI Server
-  fusion-oneui-h2db:
+  fusion-livedata-ui-h2db:
 
   fusion-${ZONE_A_NAME}-etc-wandisco:
   fusion-${ZONE_B_NAME}-etc-wandisco:
