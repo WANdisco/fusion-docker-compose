@@ -334,8 +334,8 @@ while getopts 'af:hsm' option; do
       opt_m=1
       MONITORING_MESSAGE="(with monitoring example)"
       JVM_ARG="-Dcom.sun.management.jmxremote -Dcom.sun.management.jmxremote.port=9010 \
-        -Dcom.sun.management.jmxremote.rmi.port=9010 -Dcom.sun.management.jmxremote.local.only=false \
-        -Dcom.sun.management.jmxremote.authenticate=false -Dcom.sun.management.jmxremote.ssl=false"
+-Dcom.sun.management.jmxremote.rmi.port=9010 -Dcom.sun.management.jmxremote.local.only=false \
+-Dcom.sun.management.jmxremote.authenticate=false -Dcom.sun.management.jmxremote.ssl=false"
     ;;
     ?) exit 1;;
   esac
