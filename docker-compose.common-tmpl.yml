@@ -33,7 +33,7 @@ services:
 
   # LiveData UI
   livedata-ui:
-    image: ${FUS_REGISTRY}/livedata-ui:${LIVEDATA_UI_VERSION}
+    image: wandisco/livedata-ui:${LIVEDATA_UI_VERSION}
     restart: unless-stopped
     networks:
       - fusion
