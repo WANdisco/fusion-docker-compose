@@ -73,7 +73,7 @@ services:
       - fusion
 
   grafana:
-    image: wandisco/grafana:7.1.2-v0.3
+    image: wandisco/grafana:7.1.2-v0.4
     restart: unless-stopped
     volumes:
       - grafana-storage:/var/lib/grafana
