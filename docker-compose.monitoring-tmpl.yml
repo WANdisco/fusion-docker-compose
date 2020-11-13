@@ -40,7 +40,7 @@ services:
       - fusion
 
   collectd-host:
-    image: wandisco/collectd:v0.2
+    image: wandisco/collectd:v0.3
     environment:
       - GRAPHITE_HOST=localhost
       - GRAPHITE_PORT=2003
@@ -49,7 +49,7 @@ services:
     network_mode: host
 
   collectd-bridge:
-    image: wandisco/collectd:v0.2
+    image: wandisco/collectd:v0.3
     env_file:
       - "common.env"
     environment:
@@ -73,7 +73,7 @@ services:
       - fusion
 
   grafana:
-    image: wandisco/grafana:7.1.2-v0.4
+    image: wandisco/grafana:7.1.2-v0.5
     restart: unless-stopped
     volumes:
       - grafana-storage:/var/lib/grafana
