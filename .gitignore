@@ -11,6 +11,7 @@ test.tpl
 !docker-compose.monitoring-tmpl.yml
 !docker-compose.sandbox-hdp-vanilla.yml
 !docker-compose.sandbox-hdp-vanilla-extended.yml
+!docker-compose.sandbox-cdh-vanilla.yml
 !docker-compose.livedata-migrator.yml
 [._]*.sw[a-p]
 *.sh_history

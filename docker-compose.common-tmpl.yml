@@ -39,8 +39,6 @@ services:
       - fusion
     ports:
       - ${LIVEDATA_UI_PORT}:8081
-    environment:
-      - FUSION_SERVER_HOSTNAMES=${FUSION_SERVER_HOSTNAMES}
     env_file:
       - "${COMMON_ENV}"
     volumes:
