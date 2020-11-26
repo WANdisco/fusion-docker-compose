@@ -1,0 +1,40 @@
+---
+#################################################################################
+# Copyright (c) 2020 WANdisco
+#
+#   Licensed under the Apache License, Version 2.0 (the "License");
+#   you may not use this file except in compliance with the License.
+#   You may obtain a copy of the License at
+#   http://www.apache.org/licenses/LICENSE-2.0
+#
+#   Apache License, Version 2.0
+#
+################################################################################
+#
+# This docker-compose.yml file will bring up an CDH sandbox vanilla cluster
+
+version: "3.7"
+
+services:
+  sandbox-cdh:
+    image: wandisco/sandbox-cdh-vanilla
+    privileged: true
+    command: ["/sbin/init"]
+    ports:
+      - "7180:7180"
+      - "8889:8889"
+      - "50070:50070"
+      - "50010:50010"
+      - "8081:8081"
+      - "18080:18080"
+    networks:
+      - fusion
+    hostname: sandbox-cdh
+    ulimits:
+      nproc: 800000
+      nofile:
+        soft: 170000
+        hard: 190000
+
+networks:
+  fusion: {}
