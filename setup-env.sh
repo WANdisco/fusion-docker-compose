@@ -244,6 +244,23 @@ EOZONE
   return 1
 }
 
+validate_cdh_custom_type() {
+  type="$1"
+  case "$type" in
+    1|2)     return 0;;
+  esac
+  # for anything not matched by the above case, validation failed
+  cat <<EOZONE
+
+Please choose from one of the following zone types:
+
+  1. CDH Sandbox with custom distribution
+  2. CDH Sandbox Vanilla
+
+EOZONE
+  return 1
+}
+
 validate_deployment_type() {
   deployment_type="$1"
   case "$deployment_type" in
@@ -275,7 +292,7 @@ validate_zone_type() {
     NONE)                        return 0;; # TODO: verify at least zone A is defined
     adls1|adls2)                 return 0;;
     s3|hcfs-emr)                 return 0;;
-    cdh|hdp|hdp-vanilla)         return 0;;
+    cdh|cdh-vanilla|hdp|hdp-vanilla)         return 0;;
     alibaba-emr)                 return 0;;
   esac
   # for anything not matched by the above case, validation failed
@@ -367,6 +384,7 @@ fi
 : "${COMPOSE_FILE_LDM_OUT:=docker-compose.livedata-migrator.yml}"
 : "${COMPOSE_FILE_SANDBOX_HDP_VANILLA_OUT:=docker-compose.sandbox-hdp-vanilla.yml}"
 : "${COMPOSE_FILE_SANDBOX_HDP_VANILLA_EXTENDED_OUT:=docker-compose.sandbox-hdp-vanilla-extended.yml}"
+: "${COMPOSE_FILE_SANDBOX_CDH_VANILLA_OUT:=docker-compose.sandbox-cdh-vanilla.yml}"
 
 # run everything below in a subshell to avoid leaking env vars
 (
@@ -444,7 +462,7 @@ fi
         ;;
       esac
     ;;&
-    6|7|8)
+    6|7)
       save_var USE_SANDBOX "y" "$SAVE_ENV"
       save_var ZONE_A_TYPE "cdh" "$SAVE_ENV"
       save_var ZONE_A_NAME "sandbox-cdh" "$SAVE_ENV"
@@ -455,6 +473,34 @@ fi
       save_var FUSION_NAME_NODE_SERVICE_NAME "$NAME_NODE_PROXY_HOSTNAME:8020" "$ZONE_A_ENV"
       save_var HIVE_METASTORE_HOSTNAME "sandbox-cdh" "$ZONE_A_ENV"
       save_var HIVE_METASTORE_PORT "9083" "$ZONE_A_ENV"
+    ;;&
+    8)
+      validate_cdh_custom_type "$CDH_SANDBOX_TYPE"
+      update_var CDH_SANDBOX_TYPE "Select the CDH Sandbox type you would like to use" "1" validate_cdh_custom_type
+      case $CDH_SANDBOX_TYPE in
+        *)
+          save_var CDH_SANDBOX_TYPE "${CDH_SANDBOX_TYPE}" "$SAVE_ENV"
+        ;;&
+        1)
+          save_var USE_SANDBOX "y" "$SAVE_ENV"
+          save_var ZONE_A_TYPE "cdh" "$SAVE_ENV"
+          save_var ZONE_A_NAME "sandbox-cdh" "$SAVE_ENV"
+          save_var CDH_VERSION "5.16.0" "$ZONE_A_ENV"
+          save_var HADOOP_NAME_NODE_HOSTNAME "sandbox-cdh" "$ZONE_A_ENV"
+          save_var HADOOP_NAME_NODE_PORT "8020" "$ZONE_A_ENV"
+          save_var NAME_NODE_PROXY_HOSTNAME "sandbox-cdh" "$ZONE_A_ENV"
+          save_var FUSION_NAME_NODE_SERVICE_NAME "$NAME_NODE_PROXY_HOSTNAME:8020" "$ZONE_A_ENV"
+          save_var HIVE_METASTORE_HOSTNAME "sandbox-cdh" "$ZONE_A_ENV"
+          save_var HIVE_METASTORE_PORT "9083" "$ZONE_A_ENV"
+        ;;
+        2)
+          save_var USE_SANDBOX "y" "$SAVE_ENV"
+          save_var DOCKER_HOSTNAME "cdh_vanilla-custom" "$SAVE_ENV"
+          save_var ZONE_A_TYPE "cdh-vanilla" "$SAVE_ENV"
+          save_var ZONE_A_NAME "sandbox-cdh-vanilla" "$SAVE_ENV"
+          save_var ZONE_B_TYPE "NONE" "$SAVE_ENV"
+        ;;
+      esac
     ;;&
     1|4|5|6)
       save_var ZONE_B_TYPE "adls2" "$SAVE_ENV"
@@ -505,7 +551,7 @@ fi
     update_var ZONE_A_NAME "Enter a name for the first zone" "${ZONE_A_TYPE}" validate_zone_name
     update_var ZONE_B_NAME "Enter a name for the second zone" "${ZONE_B_TYPE}" validate_zone_name_uniq
   else
-    if [ "$ZONE_A_TYPE" != "hdp-vanilla" ]; then
+    if [[ "$ZONE_A_TYPE" != "hdp-vanilla" && "$ZONE_A_TYPE" != "cdh-vanilla" ]]; then
       unset ZONE_A_NAME
       update_var ZONE_A_NAME "Enter a name for the first zone" "${ZONE_A_TYPE}-$(shuf -i 1-9999 -n 1)" validate_zone_name
     fi
@@ -517,7 +563,7 @@ fi
   . "./common.conf"
 
   ## run zone a setup (use a subshell to avoid leaking env vars)
-  ( if [ "$ZONE_A_TYPE" != "hdp-vanilla" ]; then
+  ( if [[ "$ZONE_A_TYPE" != "hdp-vanilla" && "$ZONE_A_TYPE" != "cdh-vanilla" ]]; then
     default_port_offset=0
     zone_letter=A
     set -a
@@ -622,19 +668,14 @@ fi
     set +a
   fi; )
 
-  if [ "$ZONE_A_TYPE" != "hdp-vanilla" ]; then
-    FUSION_SERVER_HOSTNAMES="http://fusion-server-${ZONE_A_NAME}:${ZONE_A_SERVER_PORT}"
-  fi
-
   if [ "$ZONE_B_TYPE" != "NONE" ]; then
-    FUSION_SERVER_HOSTNAMES="${FUSION_SERVER_HOSTNAMES},http://fusion-server-${ZONE_B_NAME}:${ZONE_B_SERVER_PORT}"
+    FUSION_SERVER_HOSTNAMES=",http://fusion-server-${ZONE_B_NAME}:${ZONE_B_SERVER_PORT}"
   fi
 
-  if [[ ! -n $FUSION_SERVER_HOSTNAMES ]]; then
-    FUSION_SERVER_HOSTNAMES="none"
+  if [[ "$ZONE_A_TYPE" != "hdp-vanilla" && "$ZONE_A_TYPE" != "cdh-vanilla" ]]; then
+    FUSION_SERVER_HOSTNAMES="http://fusion-server-${ZONE_A_NAME}:${ZONE_A_SERVER_PORT}${FUSION_SERVER_HOSTNAMES}"
+    save_var FUSION_SERVER_HOSTNAMES "$FUSION_SERVER_HOSTNAMES" "${COMMON_ENV}"
   fi
-  save_var FUSION_SERVER_HOSTNAMES "$FUSION_SERVER_HOSTNAMES" "${COMMON_ENV}"
-
 
   ## generate the common yml
   set -a
@@ -644,7 +685,7 @@ fi
   [ -f "./${COMMON_ENV}" ] && load_file "./${COMMON_ENV}"
   export COMMON_ENV
 
-  if [[ "$ZONE_A_TYPE" != "hdp-vanilla" || "$USE_LDM" = "y" ]]; then
+  if [[ "$ZONE_A_TYPE" != "hdp-vanilla" && "$ZONE_A_TYPE" != "cdh-vanilla" || "$USE_LDM" = "y" ]]; then
     envsubst <"docker-compose.common-tmpl.yml" >"${COMPOSE_FILE_COMMON_OUT}"
   fi
 
@@ -652,25 +693,32 @@ fi
 
   # set compose variables
   COMPOSE_FILE=${COMPOSE_FILE_COMMON_OUT}
-  if [ "$ZONE_A_TYPE" != "hdp-vanilla" ]; then
+  if [[ "$ZONE_A_TYPE" != "hdp-vanilla" && "$ZONE_A_TYPE" != "cdh-vanilla" ]]; then
     COMPOSE_FILE="${COMPOSE_FILE}:${COMPOSE_ZONE_A}${COMPOSE_ZONE_B}"
   fi
-  if [ "$USE_SANDBOX" = "y" ]  && [ "$ZONE_A_TYPE" = "hdp-vanilla" ]; then
-    COMPOSE_FILE="${COMPOSE_FILE_SANDBOX_HDP_VANILLA_OUT}"
-    if [ "$USE_LDM" = "y" ]; then
-      COMPOSE_FILE="${COMPOSE_FILE}:${COMPOSE_FILE_COMMON_OUT}:${COMPOSE_FILE_LDM_OUT}"
-      save_var LDM_SERVERS "livedata-migrator:18080" "${COMMON_ENV}"
-    else
-      COMPOSE_FILE="${COMPOSE_FILE}:${COMPOSE_FILE_SANDBOX_HDP_VANILLA_EXTENDED_OUT}"
-    fi
-  elif [ "$USE_SANDBOX" = "y" ] && [ "$ZONE_A_TYPE" != "hdp-vanilla" ]; then
-    save_var ZONE_PLUGIN "${ZONE_A_PLUGIN}" sandbox.env
-    COMPOSE_FILE="${COMPOSE_FILE}:docker-compose.sandbox-${ZONE_A_TYPE}.yml"
-    if [ "$USE_MONITORING" = "y" ]; then
-      envsubst <"docker-compose.monitoring-tmpl.yml" >"${COMPOSE_FILE_MONITORING_OUT}"
-      COMPOSE_FILE="${COMPOSE_FILE}:${COMPOSE_FILE_MONITORING_OUT}"
-    fi
-    case $ZONE_A_TYPE in
+
+  if [ "$USE_SANDBOX" = "y" ]; then
+    case "$ZONE_A_TYPE" in
+      hdp-vanilla)
+        COMPOSE_FILE="${COMPOSE_FILE_SANDBOX_HDP_VANILLA_OUT}"
+        if [ "$USE_LDM" = "y" ]; then
+          COMPOSE_FILE="${COMPOSE_FILE}:${COMPOSE_FILE_COMMON_OUT}:${COMPOSE_FILE_LDM_OUT}"
+          save_var LDM_SERVERS "livedata-migrator:18080" "${COMMON_ENV}"
+        else
+          COMPOSE_FILE="${COMPOSE_FILE}:${COMPOSE_FILE_SANDBOX_HDP_VANILLA_EXTENDED_OUT}"
+        fi
+      ;;
+      cdh-vanilla)
+        COMPOSE_FILE="${COMPOSE_FILE_SANDBOX_CDH_VANILLA_OUT}"
+      ;;
+      hdp|cdh)
+        save_var ZONE_PLUGIN "${ZONE_A_PLUGIN}" sandbox.env
+        COMPOSE_FILE="${COMPOSE_FILE}:docker-compose.sandbox-${ZONE_A_TYPE}.yml"
+        if [ "$USE_MONITORING" = "y" ]; then
+          envsubst <"docker-compose.monitoring-tmpl.yml" >"${COMPOSE_FILE_MONITORING_OUT}"
+          COMPOSE_FILE="${COMPOSE_FILE}:${COMPOSE_FILE_MONITORING_OUT}"
+        fi
+      ;;&
       hdp)
         envsubst <"docker-compose.sandbox-${ZONE_A_TYPE}-tmpl.yml" >"${COMPOSE_FILE_SANDBOX_HDP_OUT}"
       ;;
@@ -690,17 +738,16 @@ fi
   echo "  ./setup-env.sh -a"
 
   if [ "$USE_SANDBOX" = "y" ]; then
-    echo "Once Fusion starts the following interfaces will be available on this host:"
+    echo "Once services starts the following interfaces will be available on this host:"
     echo
     case $ZONE_A_TYPE in
-      cdh)
+      cdh|cdh-vanilla)
         echo "  Cloudera: 7180"
       ;;
       hdp|hdp-vanilla)
         echo "  Ambari: 8080"
       ;;
     esac
-
     echo "  LiveData UI: ${LIVEDATA_UI_PORT}"
     echo
     echo "Please be aware that it may take some time for these ports to be fully available."
