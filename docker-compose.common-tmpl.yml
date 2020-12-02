@@ -33,14 +33,12 @@ services:
 
   # LiveData UI
   livedata-ui:
-    image: ${FUS_REGISTRY}/livedata-ui:${LIVEDATA_UI_VERSION}
+    image: wandisco/livedata-ui:${LIVEDATA_UI_VERSION}
     restart: unless-stopped
     networks:
       - fusion
     ports:
       - ${LIVEDATA_UI_PORT}:8081
-    environment:
-      - FUSION_SERVER_HOSTNAMES=${FUSION_SERVER_HOSTNAMES}
     env_file:
       - "${COMMON_ENV}"
     volumes:
